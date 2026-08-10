@@ -16,7 +16,7 @@ state, and the server resolves collisions — typically last-write-wins on a tim
 
 This is silently destructive for spaced repetition. Consider:
 
-```
+```text
 Device A (offline):  reviews card X at 10:00, rating Good
 Device B (offline):  reviews card X at 10:05, rating Again
 Both sync at 11:00

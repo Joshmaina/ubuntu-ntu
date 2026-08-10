@@ -105,13 +105,13 @@ approach than decline a finished pull request.
 
 ### Branches and commits
 
-```
+```text
 feat/<milestone>-<description>     fix/<description>     content/<lang>-<scope>
 ```
 
 Conventional Commits, citing requirement IDs where applicable:
 
-```
+```text
 feat(core): implement FSRS stability on recall  [FR-080]
 fix(sync): dedupe review events by client UUID   [FR-091]
 content(yo): correct tone marks on market vocabulary

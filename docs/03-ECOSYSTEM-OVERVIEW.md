@@ -106,7 +106,7 @@ cannot fix it.
 
 So we show it to you instead. You record yourself, and the app draws two lines:
 
-```
+```text
    high  ┤     ╭──╮
          │    ╱    ╲              ━━━  the native speaker
          │   ╱      ╲             ╌╌╌  you
@@ -239,7 +239,7 @@ The full rules are in [09-DATA-GOVERNANCE.md](09-DATA-GOVERNANCE.md).
 
 ## Part 5 — The whole cycle
 
-```
+```text
         ┌─────────────────────────────────────────────────┐
         │                                                 │
         ▼                                                 │

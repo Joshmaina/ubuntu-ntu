@@ -29,7 +29,7 @@ rather than waiting on Phase 3 tooling.
 
 ## 2. Hierarchy
 
-```
+```text
 Language          Yoruba
   └── Dialect     Yoruba (Ọ̀yọ́)
         └── Skill         "At the Market"
@@ -51,7 +51,7 @@ once per user.
 
 ## 3. Directory layout
 
-```
+```text
 content/
 └── yo/                            ISO 639 language code
     ├── language.yaml              language-level metadata
@@ -86,7 +86,7 @@ scale (Opus clips are a few KB each); revisit with Git LFS beyond roughly 10,000
 
 Stable, human-readable, hierarchical:
 
-```
+```text
 yo.market.l1.ex3          exercise
 yo.market.v017            vocabulary item
 yo.market                 skill
@@ -320,7 +320,7 @@ Enforced by Zod in CI. Violations block merge.
 
 ## 7. Compilation pipeline
 
-```
+```text
 content/*.yaml
      │
      ▼  Zod validate ──── fail ──► CI blocks merge

@@ -39,6 +39,12 @@ Lessons download once as a few megabytes. Checking an answer, playing audio, rec
 your voice, and analysing your pitch all happen on the device. A learning session
 transfers zero bytes.
 
+**It runs on a phone and in a browser.** A mobile app (Android-first) for learners on the
+continent, where guaranteed offline and data economy matter most — and an installable web
+app for the diaspora, desktop learners, and anyone trying it without installing anything.
+Both work offline; both share the same scheduling engine, sync protocol, and pitch
+analysis. → [Platform strategy](docs/12-PLATFORM-STRATEGY.md)
+
 **It teaches tone, visibly.** Many African languages are tonal: the same syllables at a
 different pitch mean a different word. Being told "your tone was wrong" is useless. So
 we draw your pitch against the native speaker's, normalised so a deep voice and a high
@@ -47,7 +53,7 @@ voice are compared fairly. You can *see* the difference, and see it close.
 **It never drops you into a cold sentence.** Our core exercise, *Scaffolded Sentence
 Deconstruction*, removes cognitive load one layer at a time:
 
-```
+```text
 1. ANCHOR    "I am going to the market."          ← meaning first, in your language
 2. LITERAL   Mo │ ń       │ lọ │ sí │ ọjà         ← structure, morpheme by morpheme
              I  │ PRESENT │ go │ to │ market
@@ -92,6 +98,7 @@ Start with whichever fits you.
 | [Requirements](docs/04-SRS.md) | Numbered functional and non-functional requirements |
 | [Content Model](docs/07-CONTENT-MODEL.md) | Lesson file format and validation rules |
 | [Sync Protocol](docs/08-SYNC-PROTOCOL.md) | Offline synchronisation design |
+| [Platform Strategy](docs/12-PLATFORM-STRATEGY.md) | Web vs mobile — what is shared, what is written twice |
 | [Dependencies](docs/10-DEPENDENCIES.md) | Every dependency, its licence, and its cost |
 | [Decision Records](docs/adr/) | Why things are the way they are |
 
@@ -122,10 +129,17 @@ contributor portal stops being a prerequisite for content work.
 |---|---|
 | Monorepo | pnpm workspaces + Turborepo |
 | Mobile | Expo (Android-first) · React Native Skia · Reanimated |
-| Device DB | expo-sqlite + Drizzle |
+| Web | React + Vite · installable PWA · SQLite-WASM over OPFS · SVG |
+| Device DB | expo-sqlite + Drizzle (same schema on both surfaces) |
 | API | Fastify + TypeScript |
 | Data | PostgreSQL 16 · Redis 7 · MinIO |
-| Testing | Vitest (core, API) · Jest (mobile) |
+| Testing | Vitest (core, API) · Jest (mobile) · Playwright (web offline) |
+
+**Web is nearly free**, and not by luck. Three earlier decisions — a pure zero-import
+core, event-sourced sync, and batch rather than real-time pitch analysis — were each made
+for unrelated reasons, and together they mean the scheduling engine, sync protocol,
+schema, and pitch algorithm all run unmodified in a browser. Only UI, storage adapters,
+and audio plumbing are new. → [ADR-0007](docs/adr/0007-web-platform.md)
 
 **Cost to run today: $0.00.** Everything is local and open source. Paid services sit
 behind port interfaces with working free adapters.
@@ -146,6 +160,8 @@ behind port interfaces with working free adapters.
 | M6 · Pitch feedback | Contour renders ≤ 300 ms on a 2 GB Android device |
 | M7 · Exercise breadth | Six types, all YAML-authorable |
 | M8 · Engagement | Streak survives timezone change and offline gap |
+| **M9 · Web PWA** | Offline after first visit; web↔mobile progress converges; contours match |
+| M10 · Contributor studio | External contributor submits and validates end to end |
 
 M4 is the milestone that matters. Everything before it is setup; everything after is
 breadth.

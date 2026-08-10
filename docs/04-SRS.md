@@ -13,9 +13,14 @@
 
 ## 1. Scope
 
-This specifies the UBUNTU-NTU learner application, its backend services, the content
-pipeline, and the contribution pathway. Out of scope for this revision: contributor web
-studio UI (Phase 3), monetisation, iOS.
+This specifies the UBUNTU-NTU learner application on **both mobile and web**, its backend
+services, the content pipeline, and the contribution pathway. Out of scope for this
+revision: contributor web studio UI (Phase 3), monetisation, native iOS.
+
+**Platform applicability.** Unless a requirement is in §3.11 or §4.8, it applies to
+**both** the mobile app and the web app. Where a platform cannot meet a requirement
+identically, the difference is stated explicitly rather than assumed. See
+[12-PLATFORM-STRATEGY.md](12-PLATFORM-STRATEGY.md).
 
 ---
 
@@ -157,6 +162,41 @@ See [11-GLOSSARY.md](11-GLOSSARY.md). Key terms used below: **anchor language**,
 | FR-124 | P2 | Leaderboards scoped to language community. |
 | FR-125 | P0 | No mechanic may use loss-framing, false urgency, or manipulative notification patterns (see Principle 5, [01-VISION.md](01-VISION.md)). |
 
+### 3.11 Web application — platform-specific
+
+Requirements unique to the web surface. All requirements in §3.1 – §3.10 also apply
+unless contradicted here.
+
+| ID | Priority | Requirement |
+|---|---|---|
+| FR-200 | P1 | The web app is an installable PWA with a valid manifest and Service Worker. |
+| FR-201 | P1 | The application shell loads and becomes interactive with **no network connection** after first visit. |
+| FR-202 | P1 | Lesson bundles persist in Cache Storage and are usable offline. |
+| FR-203 | P1 | User progress persists in SQLite-WASM backed by OPFS, using the same Drizzle schema as mobile. |
+| FR-204 | P1 | The review outbox persists across page reload, tab close, and browser restart. |
+| FR-205 | P1 | The app requests persistent storage via `navigator.storage.persist()` on first meaningful use. |
+| FR-206 | P0 | **If persistent storage is denied, the user is told plainly that offline data may be cleared by the browser.** No silent risk. |
+| FR-207 | P1 | Audio records via `MediaRecorder`; pitch analysis uses the identical `packages/core` algorithm as mobile. |
+| FR-208 | P0 | Pitch contours computed on web and mobile from identical audio input must match. |
+| FR-209 | P1 | Contour rendering uses SVG; no WASM rendering runtime is shipped. |
+| FR-210 | P1 | The layout is responsive from 320 px to desktop widths without horizontal scrolling. |
+| FR-211 | P2 | Keyboard shortcuts for answer submission, audio replay, and stage navigation. |
+| FR-212 | P1 | Microphone permission is requested only at the point of first use, with an explanation. |
+| FR-213 | P1 | Sync triggers on visibility change and on regained connectivity. |
+| FR-214 | P1 | A user signed in on web and on mobile converges to identical progress on both. |
+| FR-215 | P2 | Recovers gracefully if browser storage is evicted: re-syncs from server, warns about unsynced loss. |
+
+> **FR-206 and FR-208 are the two that matter most.**
+>
+> FR-206 because overpromising offline reliability on web would break trust with exactly
+> the users for whom offline is a necessity rather than a convenience. Browser storage is
+> evictable in a way native storage is not, and users deserve to know that.
+>
+> FR-208 because a learner practising the same phrase on a laptop and a phone must not
+> receive contradictory feedback. Both surfaces call the same `packages/core` function, so
+> any divergence indicates a fault in audio capture or resampling — which makes this test
+> a precise diagnostic rather than a vague parity check.
+
 ---
 
 ## 4. Non-functional requirements
@@ -241,6 +281,27 @@ p95 unless stated.
 | NFR-063 | P1 | Paid third-party services sit behind a port interface with a working free adapter |
 | NFR-064 | P1 | API responses validate against the generated OpenAPI schema in CI |
 
+### 4.8 Web — platform-specific
+
+**Reference conditions:** mid-range laptop, current Chrome/Firefox, simulated 3G for
+first load.
+
+| ID | Priority | Requirement |
+|---|---|---|
+| NFR-070 | P1 | First contentful paint ≤ 2.0 s on simulated 3G |
+| NFR-071 | P1 | Repeat visit (Service Worker cached) interactive ≤ 1.0 s |
+| NFR-072 | P1 | Initial JS bundle ≤ 300 KB gzipped, excluding lazily loaded SQLite-WASM |
+| NFR-073 | P1 | SQLite-WASM loads lazily, only when local persistence is first needed |
+| NFR-074 | P1 | Contour render after recording stops ≤ 300 ms — same budget as mobile |
+| NFR-075 | P1 | Access tokens held in memory only; refresh tokens in `httpOnly`, `Secure`, `SameSite` cookies — never `localStorage` |
+| NFR-076 | P1 | Content Security Policy set; no inline scripts; no third-party origins |
+
+> **NFR-075 is a genuine divergence from mobile, not an oversight.** Mobile stores tokens
+> in the platform Keystore (NFR-031), which has no browser equivalent. `localStorage` is
+> readable by any script on the origin, making it unsafe for refresh tokens. The
+> in-memory access token plus `httpOnly` refresh cookie is the correct web equivalent —
+> which is why NFR-031 is scoped to mobile rather than written as a cross-platform rule.
+
 ---
 
 ## 5. Constraints
@@ -248,8 +309,10 @@ p95 unless stated.
 | ID | Constraint |
 |---|---|
 | C-001 | Zero paid services during Phases 0–2. All tooling free and open source. |
-| C-002 | Android first. iOS deferred (requires paid developer programme and macOS hardware). |
-| C-003 | TypeScript across mobile, backend, and tooling. |
+| C-002 | Android first for native. Native iOS deferred (requires paid developer programme and macOS hardware); iOS users are served by the web app in the interim. |
+| C-003 | TypeScript across mobile, web, backend, and tooling. |
+| C-006 | UI is implemented separately per surface. React Native Web is excluded — see [ADR-0007](adr/0007-web-platform.md). |
+| C-007 | Web offline is *best-effort* (browser storage is evictable); mobile offline is *guaranteed*. This distinction is disclosed to users, never obscured. |
 | C-004 | Content authored as plain-text files under version control — not exclusively via a database or GUI. |
 | C-005 | No feature may require connectivity on the answer-checking path. |
 

@@ -43,7 +43,7 @@ the wrong form is a social error, not a grammatical one.
 **Interlinear glossing** — Layout in which each target morpheme is vertically aligned
 with its literal meaning:
 
-```
+```text
 Mo   ń         lọ   sí   ọjà
 I    PRESENT   go   to   market
 ```

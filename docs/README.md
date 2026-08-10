@@ -30,6 +30,7 @@ Start with the document that matches who you are.
 | [07 · Content Model](07-CONTENT-MODEL.md) | Lesson file format and validation rules |
 | [08 · Sync Protocol](08-SYNC-PROTOCOL.md) | Offline synchronisation — read before touching sync |
 | [10 · Dependencies](10-DEPENDENCIES.md) | What we use, what it costs, what replaces it |
+| [12 · Platform Strategy](12-PLATFORM-STRATEGY.md) | Web vs mobile: what is shared, what is written twice |
 | [adr/](adr/) | Why decisions were made |
 
 ## I speak an African language and want to help
@@ -57,6 +58,7 @@ Start with the document that matches who you are.
 | 09 | [Data Governance](09-DATA-GOVERNANCE.md) | Everyone |
 | 10 | [Dependency Ledger](10-DEPENDENCIES.md) | Developers |
 | 11 | [Glossary](11-GLOSSARY.md) | Everyone |
+| 12 | [Platform Strategy](12-PLATFORM-STRATEGY.md) | Developers |
 | — | [Decision Records](adr/) | Developers |
 
 ---
@@ -74,7 +76,8 @@ is marked in the text rather than smoothed over. Notably:
 
 - Statistics needing citation before external publication ([01 §8](01-VISION.md), [02 §1](02-CONCEPT-NOTE.md))
 - [09 · Data Governance](09-DATA-GOVERNANCE.md) has not had legal review
-- [ADR-0006](adr/0006-fsrs-formula.md) is **Proposed** and blocks milestone M1
+- The core product hypothesis — that seeing a pitch contour improves pronunciation — is
+  unproven, and is tested at M6 ([01 §8, Q6](01-VISION.md))
 
 Visible gaps are preferable to invisible errors.
 

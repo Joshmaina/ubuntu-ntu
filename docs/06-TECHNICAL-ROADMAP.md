@@ -41,6 +41,8 @@ Each gate is **binary**. Not "looks good" — it passes or the milestone is not 
 | **M6** | Pitch feedback | Contour renders ≤ 300 ms after recording stops, on reference device |
 | **M7** | Exercise breadth | Six exercise types, all authorable in YAML, all CI-validated |
 | **M8** | Engagement & hardening | Streak survives timezone change and offline gap |
+| **M9** | **Web PWA — learner app** | **Offline after first visit; web↔mobile progress converges; contours match mobile** |
+| **M10** | Contributor studio | External contributor submits and validates a recording end to end |
 
 ---
 
@@ -182,11 +184,41 @@ user.
 
 ---
 
+### M9 — Web PWA learner app
+
+The web surface (FR-200 – FR-215, NFR-070 – NFR-076). React + Vite, installable, offline
+via Service Worker and SQLite-WASM over OPFS.
+
+**Cheaper than it appears.** By this point `packages/core`, `packages/schema`, the sync
+protocol, and the pitch algorithm are all written and tested — and all four run unmodified
+in a browser. What remains is UI, storage adapters, and audio plumbing.
+
+**Gate — three conditions, all binary:**
+
+1. Loads and completes a full lesson with **no network** after first visit
+2. Review on web, review on mobile, same account → **both converge, nothing lost**
+3. Identical audio through both pipelines → **identical pitch contours**
+
+Condition 2 requires no new sync code. It works because event-sourced progress
+([ADR-0003](adr/0003-event-sourced-sync.md)) never cared what kind of device produced an
+event.
+
+---
+
+### M10 — Contributor studio
+
+Recording, submission, peer validation, consensus promotion (FR-100 – FR-110).
+
+**Gate:** an external contributor submits a recording and a second contributor validates
+it, end to end, with consent captured and attribution recorded.
+
+---
+
 ## 4. Working conventions
 
 ### Branching
 
-```
+```text
 main            protected; always green; always deployable
   └── feat/<milestone>-<short-description>
   └── fix/<short-description>
@@ -200,7 +232,7 @@ GitHub's web interface without touching code paths.
 
 Conventional Commits, citing requirement IDs where applicable:
 
-```
+```text
 feat(core): implement FSRS stability on recall  [FR-080]
 fix(sync): dedupe events by client UUID          [FR-091]
 docs(adr): record decision to defer realtime pitch
@@ -282,9 +314,9 @@ scheduled last.
 
 ## 7. Dependencies between milestones
 
-```
+```text
 M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┬──► M5 ──┐
-                                  │         ├──► M8
+                                  │         ├──► M8 ──► M9 ──► M10
                                   ├──► M6 ──┤
                                   └──► M7 ──┘
 ```
@@ -292,13 +324,20 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┬──► M5 ─
 M5, M6, and M7 are independent after M4 and may proceed in any order or in parallel.
 Everything before M4 is strictly sequential.
 
+**Why web (M9) comes after mobile, not alongside it.** M4 exists to prove the
+architecture end to end. Proving it on two unproven surfaces simultaneously means
+debugging both at once, with no known-good reference to compare against. Once mobile
+works, web has something to be checked against — which is precisely what the M9 gate
+does.
+
 ---
 
 ## 8. What is deliberately not in this roadmap
 
 | Deferred | Reason | Revisit |
 |---|---|---|
-| Contributor web studio | GitHub serves the purpose initially | After ~500 lessons exist |
+| React Native Web (shared UI) | ~6–7 MB CanvasKit WASM contradicts data economy ([ADR-0007](adr/0007-web-platform.md)) | If UI duplication proves costlier than estimated |
+| Contributor web studio | GitHub serves the purpose initially | M10, or after ~500 lessons exist |
 | Speech recognition / ASR | Costs money; pitch comparison is the differentiator | When funded |
 | Real-time streaming pitch | Highest technical risk, marginal added value | After M6 validates the hypothesis |
 | iOS | Requires paid programme and macOS hardware | When funded |

@@ -108,7 +108,7 @@ educators, and future technologists.
 
 ### The self-reinforcing loop
 
-```
+```text
    Community records  ──────►  Peer validation  ──────►  Lessons published
           ▲                                                      │
           │                                                      ▼

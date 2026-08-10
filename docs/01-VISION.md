@@ -71,9 +71,13 @@ proverbs, an oral history, and an irreplaceable piece of human intellectual heri
 
 Four things, which together form one system:
 
-**1. A learner app** — offline-first, Android-first, that teaches through hearing and
-speaking rather than reading. Its distinguishing features are *Scaffolded Sentence
-Deconstruction* (see below) and *pitch contour feedback* for tonal languages.
+**1. A learner app** — offline-first, available as a **mobile app (Android-first) and an
+installable web app**, that teaches through hearing and speaking rather than reading. Its
+distinguishing features are *Scaffolded Sentence Deconstruction* (see below) and *pitch
+contour feedback* for tonal languages. Mobile serves learners on the continent, where
+guaranteed offline operation and data economy matter most; web serves the diaspora,
+desktop learners, and anyone trying the product without installing anything.
+See [12-PLATFORM-STRATEGY.md](12-PLATFORM-STRATEGY.md).
 
 **2. A contribution pathway** — a way for native speakers, elders, linguists, and
 students to add and correct content, with attribution and peer validation.
@@ -93,7 +97,7 @@ order does not correspond, and the learner freezes and disengages.
 
 We defuse this by never presenting a cold native sentence. Instead, four stages:
 
-```
+```text
 STAGE 1 — ANCHOR       "I am going to the market."         (learner's own language)
                         ↓  meaning is now known; anxiety removed
 STAGE 2 — LITERAL       Mo  │ ń       │ lọ  │ sí │ ọjà
@@ -166,8 +170,8 @@ finish anything.
 | A general-purpose translator | Different product, needs orders of magnitude more data |
 | A social network | Community features come later, and only in service of learning |
 | An AI conversation partner | Requires models that do not yet exist for these languages |
-| iOS at launch | Android is dominant in-market; iOS costs money we do not have |
-| A web learner app | Offline-first on mobile is the hard requirement; web dilutes it |
+| A native iOS app at launch | Android is dominant in-market; iOS costs money we do not have. iOS users are served by the web app in the interim |
+| React Native Web (one shared UI codebase) | Would require ~6–7 MB of CanvasKit WASM for pitch rendering, contradicting our data-economy constraints. See [ADR-0007](adr/0007-web-platform.md) |
 | Support for 50 languages at launch | One language done excellently beats ten done badly |
 | Our own ASR/speech-recognition model | We integrate others' work; we do not train foundation models |
 

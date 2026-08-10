@@ -34,7 +34,7 @@ Because FSRS replay is deterministic and events carry their own timestamps, orde
 data. Events therefore commute, which eliminates conflict resolution entirely — there is
 nothing to resolve.
 
-```
+```text
 Device A (offline)          Device B (offline)
   ev1 @ 10:00                 ev3 @ 10:05
   ev2 @ 10:02                 ev4 @ 10:07
@@ -128,7 +128,7 @@ await db.transaction(async (tx) => {
 
 ### 5.3 Lifecycle
 
-```
+```text
 created ──► pending ──► in-flight ──► acked ──► purged (after 7 days)
                 │            │
                 └──── retry ─┘

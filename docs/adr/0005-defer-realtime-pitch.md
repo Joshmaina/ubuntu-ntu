@@ -33,7 +33,7 @@ the wrong order.
 
 **Version 1 analyses a completed recording, not a live stream.**
 
-```
+```text
 tap record → speak → tap stop → analyse (~200 ms) → render contour vs. reference
 ```
 

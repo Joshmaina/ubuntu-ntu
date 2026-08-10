@@ -98,7 +98,7 @@ seeder. The database is a **derived artefact**, not the source of truth.
 
 ## 3. System overview
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        MOBILE CLIENT (Expo / Android)                  │
 │                                                                        │
@@ -156,11 +156,12 @@ Note the direction of authority: `content/` → Postgres, never the reverse.
 
 ## 4. Repository layout
 
-```
+```text
 ubuntu-ntu/
 ├── apps/
 │   ├── api/                 Fastify server
-│   ├── mobile/              Expo application
+│   ├── mobile/              Expo application (Android-first)
+│   ├── web/                 React + Vite PWA — learner app (M9)
 │   └── studio/              contributor web — Phase 3, scaffold only
 ├── packages/
 │   ├── core/                ★ zero-dependency shared logic
@@ -176,12 +177,17 @@ ubuntu-ntu/
 
 **Dependency rule, enforced in CI:**
 
-```
+```text
 apps/*  ──────►  packages/schema  ──────►  packages/core
    │                                            ▲
    └────────────────────────────────────────────┘
                 packages/core imports NOTHING
 ```
+
+`packages/core` and `packages/schema` are shared by **all four** apps — mobile, web, api,
+and studio. The zero-import constraint on core is what makes this possible; it runs
+unmodified in Node, React Native, and the browser. See
+[12-PLATFORM-STRATEGY.md](12-PLATFORM-STRATEGY.md).
 
 ---
 
@@ -195,7 +201,11 @@ apps/*  ──────►  packages/schema  ──────►  packages/
 | ORM | Drizzle | Single schema definition targeting both Postgres and SQLite — server and device share table types |
 | Device DB | expo-sqlite + Drizzle | See ADR-0001; WatermelonDB's sync model conflicts with §2.2 |
 | Mobile | Expo, dev builds, Android-first | Local builds are free; iOS requires paid programme and macOS |
-| Rendering | React Native Skia + Reanimated | 60 fps contour rendering off the JS thread |
+| **Web** | **React + Vite, installable PWA** | **Serves the diaspora and zero-friction trial; see ADR-0007** |
+| **Web storage** | **SQLite-WASM over OPFS + Drizzle** | **Same Drizzle schema as mobile; one definition, three runtimes** |
+| **Web offline** | **Service Worker + Cache Storage** | **Same immutable bundles the mobile client downloads** |
+| Rendering (mobile) | React Native Skia + Reanimated | 60 fps contour rendering off the JS thread |
+| Rendering (web) | SVG path | Batch contour rendering needs no Skia; avoids ~6–7 MB CanvasKit WASM |
 | Validation | Zod | One schema yields TS types, runtime validation, and content linting |
 | Testing | Vitest (core/API), Jest (mobile) | Vitest is substantially faster; mobile requires jest-expo |
 | Infrastructure | Docker: Postgres 16, Redis 7, MinIO | MinIO speaks S3, so cloud migration is a config change |
@@ -218,7 +228,7 @@ They have different lifecycles and must not be conflated:
 
 ### 6.2 Content pipeline
 
-```
+```text
 content/*.yaml ──► Zod validate ──► seed to Postgres ──► build bundle
                         │                                     │
                      CI gate                          content-addressed,
@@ -287,7 +297,7 @@ explicitly inspect sync status.
 
 ## 9. Pitch analysis
 
-```
+```text
 mic → 16 kHz PCM → frame (25 ms window, 10 ms hop)
                       │
                       ▼
@@ -324,7 +334,7 @@ cost and risk, behind an interface that permits upgrading later.
 Every capability that will eventually cost money sits behind an interface with a working
 free adapter and a dormant paid one.
 
-```
+```text
 StoragePort ──┬── MinioAdapter        ✅ live (local Docker)
               └── S3Adapter           💤 written, unwired
 
@@ -386,6 +396,7 @@ Recorded so they are not silently relitigated later:
 
 | Rejected | Reason |
 |---|---|
+| React Native Web (one shared UI) | ~6–7 MB CanvasKit WASM for Skia contradicts the data-economy constraint; see [ADR-0007](adr/0007-web-platform.md) |
 | Go backend | Workload is I/O-bound; a second language costs more than it saves at this team size |
 | GraphQL | Endpoint set is small and stable; REST + OpenAPI is simpler and generates clients free |
 | WatermelonDB | Imposes a sync model incompatible with §2.2 |
