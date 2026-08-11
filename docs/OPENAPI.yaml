@@ -1,0 +1,465 @@
+# GENERATED FILE — do not edit by hand.
+# Regenerate with: pnpm --filter @ubuntu-ntu/api openapi
+# Source of truth: apps/api/src/app.ts route schemas.
+
+openapi: 3.1.0
+info:
+  title: UBUNTU-NTU API
+  description: Offline-first African language learning. Progress synchronises as
+    an append-only event log; server state is derived by deterministic replay.
+  version: 0.1.0
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas: {}
+paths:
+  /health:
+    get:
+      tags:
+        - system
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - ok
+                  database:
+                    type: boolean
+                required:
+                  - status
+                  - database
+                additionalProperties: false
+  /v1/auth/register:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 320
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 200
+                anchorLanguage:
+                  type: string
+                  maxLength: 10
+                  default: en
+              required:
+                - email
+                - password
+              additionalProperties: false
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresIn:
+                    type: number
+                required:
+                  - accessToken
+                  - refreshToken
+                  - expiresIn
+                additionalProperties: false
+        "409":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/auth/login:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 320
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 200
+              required:
+                - email
+                - password
+              additionalProperties: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresIn:
+                    type: number
+                required:
+                  - accessToken
+                  - refreshToken
+                  - expiresIn
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/auth/refresh:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  minLength: 1
+              required:
+                - refreshToken
+              additionalProperties: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresIn:
+                    type: number
+                required:
+                  - accessToken
+                  - refreshToken
+                  - expiresIn
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/auth/logout:
+    post:
+      tags:
+        - auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  minLength: 1
+              required:
+                - refreshToken
+              additionalProperties: false
+      responses:
+        "204":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                enum:
+                  - "null"
+                nullable: true
+  /v1/bundles/manifest:
+    get:
+      tags:
+        - content
+      parameters:
+        - schema:
+            type: string
+            minLength: 2
+          in: query
+          name: dialect
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dialect:
+                    type: string
+                  bundles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        version:
+                          type: number
+                        sizeBytes:
+                          type: number
+                        sha256:
+                          type: string
+                        lessonIds:
+                          type: array
+                          items:
+                            type: string
+                      required:
+                        - id
+                        - version
+                        - sizeBytes
+                        - sha256
+                        - lessonIds
+                      additionalProperties: false
+                required:
+                  - dialect
+                  - bundles
+                additionalProperties: false
+  /v1/events:
+    post:
+      tags:
+        - sync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      eventId:
+                        type: string
+                        format: uuid
+                      vocabItemId:
+                        type: string
+                        minLength: 1
+                        maxLength: 128
+                      rating:
+                        anyOf:
+                          - type: number
+                            enum:
+                              - 1
+                          - type: number
+                            enum:
+                              - 2
+                          - type: number
+                            enum:
+                              - 3
+                          - type: number
+                            enum:
+                              - 4
+                      reviewedAt:
+                        type: string
+                        format: date-time
+                      durationMs:
+                        type: integer
+                        minimum: 0
+                      clientId:
+                        type: string
+                        maxLength: 64
+                    required:
+                      - eventId
+                      - vocabItemId
+                      - rating
+                      - reviewedAt
+                    additionalProperties: false
+                  maxItems: 500
+              required:
+                - events
+              additionalProperties: false
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: array
+                    items:
+                      type: string
+                  duplicate:
+                    type: array
+                    items:
+                      type: string
+                  rejected:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        eventId:
+                          type: string
+                        reason:
+                          type: string
+                      required:
+                        - eventId
+                        - reason
+                      additionalProperties: false
+                  serverTime:
+                    type: string
+                required:
+                  - accepted
+                  - duplicate
+                  - rejected
+                  - serverTime
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/cards/due:
+    get:
+      tags:
+        - sync
+      parameters:
+        - schema:
+            type: integer
+            exclusiveMinimum: true
+            minimum: 0
+            maximum: 200
+            default: 50
+          in: query
+          name: limit
+          required: false
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cards:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vocabItemId:
+                          type: string
+                        state:
+                          type: number
+                        stability:
+                          type: number
+                        difficulty:
+                          type: number
+                        reps:
+                          type: number
+                        lapses:
+                          type: number
+                        due:
+                          type: string
+                          nullable: true
+                      required:
+                        - vocabItemId
+                        - state
+                        - stability
+                        - difficulty
+                        - reps
+                        - lapses
+                        - due
+                      additionalProperties: false
+                required:
+                  - cards
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false

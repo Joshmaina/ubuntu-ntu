@@ -254,6 +254,73 @@ reversed in a later release.
 
 ---
 
+## 9a. Images (ADR-0008)
+
+Images are governed exactly as audio is — consent, attribution, withdrawal — with
+additional protections, because a photograph carries risks a short voice clip
+does not.
+
+### Why images are treated as higher-risk
+
+| Concern | Audio | Image |
+|---|---|---|
+| Identifies the contributor | Sometimes | **Usually, if a person is shown** |
+| May capture third parties who never consented | Rarely | **Easily — bystanders, family, neighbours** |
+| Third-party copyright | Rare | **Common — artwork, signage, packaging, buildings** |
+| Reveals location | No | **Often, and sometimes precisely** |
+
+### Rules
+
+1. **No images of identifiable children.** Not with parental consent, not with
+   community consent. A child cannot consent to a photograph being published
+   under an open licence and carried for the rest of their life, and a parent
+   cannot meaningfully consent on their behalf to permanent open publication. If
+   a concept needs a child, use an illustration or leave it out.
+
+2. **Images of adults require that adult's own consent**, separately from the
+   contributor's. Photographing someone is not the same as recording yourself.
+
+3. **Prefer objects, places, and actions over people.** Most vocabulary needs no
+   human subject at all. This is both safer and usually clearer.
+
+4. **The contributor must hold the rights.** No photographs of artwork,
+   packaging, signage, or other people's images. Asserted at upload, and
+   spot-checked in review.
+
+5. **Location metadata is stripped** from every uploaded image before storage.
+   A contributor should not disclose where they live as a side effect of
+   photographing a cooking pot.
+
+6. **Withdrawal works as it does for audio**, with the same honest limit: once an
+   openly licensed dataset has been downloaded, we cannot recall those copies
+   (§5.3).
+
+### Cultural appropriateness
+
+Some objects, places, and practices are not photographed — sacred sites,
+ceremonial items, contexts where photography is intrusive or forbidden. This
+varies by community and is not something we can enumerate in advance.
+
+**The designated linguistic authority may veto any image without giving a
+reason**, and that veto is final. We do not require a community to explain its
+own protocols to us.
+
+### No synthetic imagery
+
+We do not use AI-generated images (ADR-0008). Provenance is unclear, generative
+models reproduce the under-representation they were trained on, and a project
+whose central claim is *authentic, community-sourced language* cannot illustrate
+itself with fabrications.
+
+> ⚠️ **Requires review.** Rule 1 in particular is a firm position taken by the
+> maintainer and not yet discussed with any community. Some communities may
+> consider it overcautious; children learning their heritage language is a core
+> use case, and imagery of children may be exactly what a family wants. This is
+> precisely the kind of decision §11 says will not be made unilaterally — it is
+> flagged for community consultation before any image collection begins.
+
+---
+
 ## 10. What we will not do
 
 Stated explicitly so we can be held to it:

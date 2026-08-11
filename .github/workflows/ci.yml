@@ -98,6 +98,30 @@ jobs:
         env:
           UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
 
+      # M3 gate. These run against a REAL Postgres on purpose: the idempotency
+      # guarantee is a primary key plus ON CONFLICT, so a mocked database would
+      # be testing the mock rather than the guarantee.
+      - name: API integration tests
+        run: pnpm --filter @ubuntu-ntu/api test
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
+          JWT_ACCESS_SECRET: ci-access-secret-long-enough-for-validation
+          JWT_REFRESH_SECRET: ci-refresh-secret-long-enough-for-validation
+
+      # The spec is generated, so a stale committed copy is a real defect.
+      - name: OpenAPI spec is up to date
+        run: |
+          pnpm --filter @ubuntu-ntu/api openapi
+          if ! git diff --exit-code --quiet docs/OPENAPI.yaml; then
+            echo "::error::docs/OPENAPI.yaml is stale. Run: pnpm --filter @ubuntu-ntu/api openapi"
+            git diff docs/OPENAPI.yaml
+            exit 1
+          fi
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
+          JWT_ACCESS_SECRET: ci-access-secret-long-enough-for-validation
+          JWT_REFRESH_SECRET: ci-refresh-secret-long-enough-for-validation
+
       - name: Tear down
         if: always()
         run: docker compose down -v

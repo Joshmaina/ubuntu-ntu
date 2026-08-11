@@ -162,6 +162,27 @@ See [11-GLOSSARY.md](11-GLOSSARY.md). Key terms used below: **anchor language**,
 | FR-124 | P2 | Leaderboards scoped to language community. |
 | FR-125 | P0 | No mechanic may use loss-framing, false urgency, or manipulative notification patterns (see Principle 5, [01-VISION.md](01-VISION.md)). |
 
+### 3.10a Visual learning (ADR-0008)
+
+Image-based exercises. Schema support exists from M2; exercise types ship at M7.
+
+| ID | Priority | Requirement |
+|---|---|---|
+| FR-220 | P1 | A vocabulary item may carry an image with mandatory alt text. |
+| FR-221 | P1 | `image_match`: the learner sees an image and chooses the target word. |
+| FR-222 | P1 | `image_label`: the learner sees an image and produces the target word. |
+| FR-223 | P2 | `image_audio_match`: the learner hears a word and chooses the image. |
+| FR-224 | P0 | Image exercises function with **no anchor language configured** — this is their defining property and the reason they exist. |
+| FR-225 | P1 | Images are bundled for offline use exactly as audio is. |
+| FR-226 | P0 | Every image has alt text in at least one anchor language (NFR-044). |
+| FR-227 | P0 | Location metadata is stripped from uploaded images before storage. |
+| FR-228 | P0 | The designated linguistic authority may veto any image without stating a reason. |
+
+> **FR-224 is the point of the feature.** Every other exercise type routes
+> meaning through a language the learner must already read. Image exercises are
+> the only ones a pre-literate child can complete, and the only ones that build
+> `word → concept` directly rather than `word → English → concept`.
+
 ### 3.11 Web application — platform-specific
 
 Requirements unique to the web surface. All requirements in §3.1 – §3.10 also apply
@@ -280,6 +301,22 @@ p95 unless stated.
 | NFR-062 | P0 | All time-dependent functions accept an explicit timestamp; no implicit clock reads in core logic |
 | NFR-063 | P1 | Paid third-party services sit behind a port interface with a working free adapter |
 | NFR-064 | P1 | API responses validate against the generated OpenAPI schema in CI |
+
+### 4.7a Images — data economy
+
+| ID | Priority | Requirement |
+|---|---|---|
+| NFR-080 | P0 | Every image ≤ **40 KB** |
+| NFR-081 | P0 | Every image ≤ **800 px** on the long edge |
+| NFR-082 | P0 | Images encoded WebP |
+| NFR-083 | P0 | NFR-080–082 enforced in CI; an oversized image cannot merge |
+
+> **These numbers are load-bearing, not housekeeping.** A 3-second Opus clip is
+> ~10 KB; an unoptimised photo is ~200 KB — twenty times the cost of the audio
+> it accompanies. NFR-011 caps a 10-lesson bundle at 5 MB *including* audio, so
+> unchecked images would consume the entire offline budget on their own and
+> silently break the offline promise for the users who most depend on it.
+> Enforcement is mechanical because good intentions do not survive a deadline.
 
 ### 4.8 Web — platform-specific
 

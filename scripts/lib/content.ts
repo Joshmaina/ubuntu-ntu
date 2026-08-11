@@ -212,6 +212,8 @@ export function loadContent(): LoadResult {
     languages.push({ language, dialects, vocabulary, skills, lessons });
   }
 
+  issues.push(...checkImageBudget());
+
   return { languages, issues };
 }
 
@@ -255,6 +257,56 @@ function detectPrerequisiteCycles(
   };
 
   for (const skill of skills) visit(skill.id, []);
+  return issues;
+}
+
+/**
+ * Enforce the image budget (NFR-080..083, ADR-0008).
+ *
+ * A 3-second Opus clip is ~10 KB; an unoptimised photo is ~200 KB. NFR-011 caps
+ * a 10-lesson bundle at 5 MB including audio, so unchecked images would eat the
+ * entire offline budget. Enforced mechanically because good intentions do not
+ * survive a deadline.
+ */
+export const MAX_IMAGE_BYTES = 40 * 1024;
+
+export function checkImageBudget(): ContentIssue[] {
+  const issues: ContentIssue[] = [];
+
+  const walk = (dir: string): void => {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+        continue;
+      }
+
+      const lower = entry.toLowerCase();
+      if (!/\.(webp|png|jpe?g|gif|avif)$/.test(lower)) continue;
+
+      const file = rel(full);
+
+      if (!lower.endsWith('.webp')) {
+        issues.push({
+          file,
+          path: 'format',
+          message: `images must be WebP (NFR-082); found "${entry.split('.').pop()}"`,
+        });
+      }
+
+      const bytes = statSync(full).size;
+      if (bytes > MAX_IMAGE_BYTES) {
+        issues.push({
+          file,
+          path: 'size',
+          message: `${Math.round(bytes / 1024)} KB exceeds the ${MAX_IMAGE_BYTES / 1024} KB budget (NFR-080)`,
+        });
+      }
+    }
+  };
+
+  walk(join(CONTENT_DIR));
   return issues;
 }
 

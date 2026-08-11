@@ -135,6 +135,12 @@ export const vocabularyItems = pgTable(
     anchors: jsonb('anchors').notNull(),
     partOfSpeech: varchar('part_of_speech', { length: 32 }),
     audioPath: text('audio_path'),
+    /**
+     * Visual learning (ADR-0008). Populated from day one although the image
+     * exercise types ship at M7 — schema is never gated.
+     * Shape: { path, alt: {en, sw}, credit?, license? }
+     */
+    image: jsonb('image'),
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

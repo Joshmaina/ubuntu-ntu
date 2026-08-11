@@ -54,6 +54,22 @@ export const dialectSchema = z.object({
 
 // --- Vocabulary ------------------------------------------------------------
 
+/**
+ * An image asset (ADR-0008).
+ *
+ * `alt` is REQUIRED, not optional, for two reasons: screen-reader users need it
+ * (NFR-044), and it doubles as the authoring record of what the image is
+ * actually meant to depict — which is how a mismatched or culturally wrong
+ * image gets caught in review.
+ */
+export const imageSchema = z.object({
+  path: z.string().min(1),
+  alt: localisedSchema,
+  /** Contributor credit, matching the attribution rule for audio. */
+  credit: z.string().optional(),
+  license: z.string().optional(),
+});
+
 export const vocabularyItemSchema = z.object({
   id: z.string().regex(ID, 'id must be lowercase dot-separated'),
   target: z.string().min(1),
@@ -62,6 +78,12 @@ export const vocabularyItemSchema = z.object({
   anchors: localisedSchema,
   partOfSpeech: z.string().optional(),
   audio: z.string().optional(),
+  /**
+   * Present from day one though the image exercise types ship at M7. Schema is
+   * never gated — data migrations are expensive, UI gating is free
+   * (docs/05-ARCHITECTURE.md §10).
+   */
+  image: imageSchema.optional(),
   notes: z.string().optional(),
 });
 
