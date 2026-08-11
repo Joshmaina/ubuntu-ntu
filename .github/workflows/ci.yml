@@ -44,7 +44,9 @@ jobs:
         run: pnpm validate:content
 
       # NFR-061: 100% line and branch coverage, enforced by threshold.
-      - name: Tests with coverage threshold
+      # packages/* only — these are pure and need no infrastructure. The API's
+      # integration tests run in the `database` job, against a real Postgres.
+      - name: Unit tests with coverage threshold
         run: pnpm test:coverage
 
   database:
