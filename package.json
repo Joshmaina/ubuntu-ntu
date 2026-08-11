@@ -22,13 +22,26 @@
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "check:purity": "node scripts/check-core-purity.mjs",
-    "verify": "pnpm typecheck && pnpm check:purity && pnpm test:coverage",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:status": "tsx scripts/migrate.ts --status",
+    "migrate:verify": "tsx scripts/migrate.ts --verify",
+    "seed": "tsx scripts/seed.ts",
+    "db:reset": "pnpm migrate && pnpm seed",
+    "verify": "pnpm typecheck && pnpm check:purity && pnpm validate:content && pnpm test:coverage",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:health": "node scripts/check-containers.mjs"
   },
+  "dependencies": {
+    "@ubuntu-ntu/schema": "workspace:*",
+    "pg": "^8.13.1",
+    "yaml": "^2.6.1"
+  },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   }

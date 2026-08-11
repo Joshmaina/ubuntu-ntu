@@ -1,0 +1,46 @@
+# ⚠️  PROVISIONAL — NOT VALIDATED BY A NATIVE SPEAKER.
+# See content/ki/language.yaml. Tone labels in particular are placeholders:
+# Gĩkũyũ tone is not written, so it cannot be derived from a dictionary entry
+# and must come from a speaker recording.
+
+- id: ki.greetings.v001
+  target: wĩ
+  anchors:
+    en: you are
+    sw: wewe ni
+  tones: [high]
+  partOfSpeech: pronoun-copula
+  notes: >
+    PROVISIONAL. Second-person singular. Tone label unverified.
+
+- id: ki.greetings.v002
+  target: mwega
+  anchors:
+    en: well
+    sw: mzima
+  tones: [low, high]
+  partOfSpeech: adjective
+  notes: >
+    PROVISIONAL. Adjectives in Gĩkũyũ agree with noun class; that agreement is
+    not modelled here and needs a linguist's input.
+
+- id: ki.greetings.v003
+  target: nĩ
+  anchors:
+    en: (affirmative marker)
+    sw: ni
+  tones: [high]
+  partOfSpeech: particle
+  notes: >
+    PROVISIONAL. A grammatical particle with no single English equivalent —
+    exactly the case FR-043 exists for: it is glossed with a category label
+    rather than left blank.
+
+- id: ki.greetings.v004
+  target: ndĩ
+  anchors:
+    en: I am
+    sw: mimi ni
+  tones: [low]
+  partOfSpeech: pronoun-copula
+  notes: 'PROVISIONAL. First-person singular.'

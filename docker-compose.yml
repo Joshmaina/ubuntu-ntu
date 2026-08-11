@@ -15,7 +15,16 @@ services:
       # matters for event replay ordering (docs/08-SYNC-PROTOCOL.md §7).
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # HOST port defaults to 5433, not 5432, deliberately.
+      #
+      # A native PostgreSQL install on the developer's machine binds 5432 and
+      # wins the port; Docker's mapping then silently loses and every client
+      # connects to the WRONG database. That failure is nasty because it looks
+      # like a schema bug ("relation already exists") rather than a connection
+      # problem. Defaulting off the well-known port removes the ambiguity.
+      #
+      # The CONTAINER port stays 5432 so nothing inside the network changes.
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +40,7 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -50,8 +59,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-ubuntuntu_admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-ubuntuntu_local_dev}
     ports:
-      - "${MINIO_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${MINIO_HOST_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
     volumes:
       - storage_data:/data
     healthcheck:

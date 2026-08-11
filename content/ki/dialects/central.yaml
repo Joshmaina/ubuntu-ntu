@@ -1,0 +1,19 @@
+# ⚠️  PROVISIONAL — see content/ki/language.yaml
+
+code: ki-central
+language: ki
+name: Gĩkũyũ (Central)
+region: Central Kenya
+description: >
+  Provisional pilot variety. The internal variation across Gĩkũyũ-speaking
+  areas has NOT been researched for this project, and "Central" is a working
+  placeholder rather than a claim about how the language is actually
+  subdivided. A designated authority should correct or replace this label.
+
+authority:
+  # NFR-050/NFR-051: null here BLOCKS publication of any lesson in this
+  # variety. This is a hard CI gate, not a reminder — see
+  # scripts/validate-content.ts.
+  name: null
+  affiliation: null
+  confirmedAt: null

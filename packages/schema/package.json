@@ -1,0 +1,31 @@
+{
+  "name": "@ubuntu-ntu/schema",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Drizzle table definitions (Postgres + SQLite) and Zod contracts shared by api, mobile, and web.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./pg": "./src/pg.ts",
+    "./sqlite": "./src/sqlite.ts",
+    "./contracts": "./src/contracts.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ubuntu-ntu/core": "workspace:*",
+    "drizzle-orm": "^0.38.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.8",
+    "vitest": "^2.1.8"
+  }
+}

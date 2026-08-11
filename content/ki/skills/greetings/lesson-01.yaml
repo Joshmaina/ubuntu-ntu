@@ -1,0 +1,113 @@
+# PROVISIONAL — NOT VALIDATED BY A NATIVE SPEAKER.
+# `validated: false` blocks this from any published bundle. See
+# content/ki/language.yaml and docs/09-DATA-GOVERNANCE.md.
+
+id: ki.greetings.l1
+skill: ki.greetings
+title:
+  en: Are you well?
+  sw: Je, u mzima?
+orderIndex: 0
+xpReward: 10
+validated: false
+
+exercises:
+  # Scaffolded Sentence Deconstruction — the signature exercise (FR-040..050).
+  # Anchor -> literal gloss -> slow -> native.
+  - id: ki.greetings.l1.ex1
+    type: sentence_deconstruction
+    target: Wĩ mwega
+    anchors:
+      en: Are you well?
+      sw: Je, u mzima?
+
+    # The gloss MUST reassemble into `target` — checked mechanically by
+    # checkGlossAlignment(), which calls the same validateGloss() the apps use
+    # at runtime. Whitespace is ignored in that comparison.
+    gloss:
+      - morph: Wĩ
+        anchor:
+          en: you are
+          sw: wewe ni
+        tone: high
+        audio: greetings/morphemes/wi.opus
+        vocabId: ki.greetings.v001
+
+      - morph: ' mwega'
+        anchor:
+          en: well
+          sw: mzima
+        tone: low
+        audio: greetings/morphemes/mwega.opus
+        vocabId: ki.greetings.v002
+
+    audio:
+      full: greetings/l1-full.opus
+      anchor:
+        en: greetings/l1-anchor-en.opus
+
+    assembly:
+      distractors: ['ndĩ', 'nĩ']
+
+  - id: ki.greetings.l1.ex2
+    type: sentence_deconstruction
+    target: Nĩ ndĩ mwega
+    anchors:
+      en: I am well.
+      sw: Mimi ni mzima.
+
+    gloss:
+      # A grammatical particle with no lexical equivalent. FR-043 requires a
+      # category label here rather than a blank cell — the learner sees
+      # "AFFIRM", not an empty box.
+      - morph: Nĩ
+        category: AFFIRM
+        tone: high
+        audio: greetings/morphemes/ni.opus
+        vocabId: ki.greetings.v003
+
+      - morph: ' ndĩ'
+        anchor:
+          en: I am
+          sw: mimi ni
+        tone: low
+        audio: greetings/morphemes/ndi.opus
+        vocabId: ki.greetings.v004
+
+      - morph: ' mwega'
+        anchor:
+          en: well
+          sw: mzima
+        tone: low
+        audio: greetings/morphemes/mwega.opus
+        vocabId: ki.greetings.v002
+
+    audio:
+      full: greetings/l1-ex2-full.opus
+
+    assembly:
+      distractors: ['wĩ']
+
+  - id: ki.greetings.l1.ex3
+    type: multiple_choice
+    prompt:
+      en: Which word means "well"?
+      sw: Neno gani linamaanisha "mzima"?
+    options:
+      - text: mwega
+        correct: true
+      - text: ndĩ
+        correct: false
+      - text: nĩ
+        correct: false
+    vocabId: ki.greetings.v002
+
+  # Tone exercise. Reference contour is a PLACEHOLDER — real values come from
+  # F0 analysis of a native speaker recording, which is the whole point.
+  - id: ki.greetings.l1.ex4
+    type: tone_match
+    target: mwega
+    tones: [low, high]
+    referenceContour: [-2.0, 1.5]
+    toleranceSemitones: 1.5
+    vocabId: ki.greetings.v002

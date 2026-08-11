@@ -1,0 +1,32 @@
+# Gĩkũyũ (Kikuyu) — pilot language.
+#
+# ⚠️  PROVISIONAL CONTENT — NOT VALIDATED BY A NATIVE SPEAKER.
+#
+# Everything under content/ki/ exists to exercise the pipeline during
+# development. It is drawn from published reference material, but the author is
+# not a Gĩkũyũ speaker and none of it has been reviewed by one.
+#
+# It MUST NOT be published. Two gates enforce this rather than relying on
+# anyone remembering:
+#   1. every lesson carries `validated: false`
+#   2. dialects/central.yaml has `authority.name: null`
+# The bundle builder refuses to publish either.
+#
+# Replacing this with speaker-validated content is a prerequisite for public
+# release — see docs/09-DATA-GOVERNANCE.md.
+
+code: ki
+name: Gikuyu
+nativeName: Gĩkũyũ
+isTonal: true
+
+toneSystem:
+  levels: [low, high]
+  # Tone is NOT written in standard Gĩkũyũ orthography. This is precisely why
+  # the pitch-contour feature has real value here: the writing genuinely does
+  # not tell a learner what the pitch should be, so it cannot be inferred from
+  # text and must come from speaker recordings.
+  markedInOrthography: false
+
+scripts: [latin]
+anchorLanguages: [en, sw]

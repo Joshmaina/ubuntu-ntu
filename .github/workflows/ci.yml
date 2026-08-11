@@ -38,16 +38,31 @@ jobs:
       - name: Core purity check (ADR-0002)
         run: pnpm check:purity
 
+      # NFR-052: malformed content cannot merge. This is what makes the
+      # "linguists edit through GitHub PRs" workflow (ADR-0004) safe.
+      - name: Validate content
+        run: pnpm validate:content
+
       # NFR-061: 100% line and branch coverage, enforced by threshold.
       - name: Tests with coverage threshold
         run: pnpm test:coverage
 
-  docker:
-    name: Docker stack health
+  database:
+    name: Docker stack, migrate, seed
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
       - name: Start stack
         run: docker compose up -d
@@ -63,6 +78,25 @@ jobs:
           docker compose ps
           docker compose logs --tail=50
           exit 1
+
+      # M2 gate: schema applies cleanly to an empty database and content loads.
+      # Runs against a fresh container every time, so "works on my machine"
+      # drift cannot hide here.
+      - name: Migrate
+        run: pnpm migrate
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
+
+      - name: Seed
+        run: pnpm seed
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
+
+      # Idempotency: a second run must be a no-op, not a failure.
+      - name: Re-run migrate and seed (idempotency)
+        run: pnpm migrate && pnpm seed
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
 
       - name: Tear down
         if: always()

@@ -1,0 +1,15 @@
+# ⚠️  PROVISIONAL — see content/ki/language.yaml
+
+id: ki.greetings
+dialect: ki-central
+title:
+  en: Greetings
+  sw: Salamu
+description:
+  en: Asking after someone and answering.
+  sw: Kuulizana hali na kujibu.
+icon: hand-wave
+prerequisites: []
+position:
+  x: 0
+  y: 0
