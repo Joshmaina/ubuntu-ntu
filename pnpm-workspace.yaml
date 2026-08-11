@@ -1,0 +1,10 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# pnpm 11 blocks dependency install scripts unless explicitly approved.
+# esbuild is a transitive dependency of vitest (via vite) and needs its
+# postinstall to fetch the platform binary. Approved deliberately — any
+# addition here should be justified, not rubber-stamped.
+allowBuilds:
+  esbuild: true

@@ -74,9 +74,9 @@ mathematics with no I/O, making it the single most testable and most silently
 error-prone component in the system.
 
 - `types.ts` — `Card`, `Rating`, `State`, `ReviewLog`, `Parameters`
-- `fsrs.ts` — initial stability/difficulty; difficulty update with mean reversion;
-  three stability paths (recall / forget / same-day); retrievability; interval from
-  desired retention
+- `fsrs.ts` — initial stability/difficulty; difficulty update with linear damping and
+  mean reversion; two stability paths (recall / lapse — FSRS-4.5 has no same-day path,
+  that arrived in FSRS-5); retrievability; interval from desired retention
 - `tone.ts` — Hz → relative semitones; EMA smoothing; contour deviation
 - `gloss.ts` — morpheme alignment parsing
 

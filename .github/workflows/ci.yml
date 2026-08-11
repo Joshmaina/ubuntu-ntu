@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, purity, tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      # ADR-0002: packages/core must import nothing. A build failure here is
+      # the mechanism that keeps client and server incapable of diverging.
+      - name: Core purity check (ADR-0002)
+        run: pnpm check:purity
+
+      # NFR-061: 100% line and branch coverage, enforced by threshold.
+      - name: Tests with coverage threshold
+        run: pnpm test:coverage
+
+  docker:
+    name: Docker stack health
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start stack
+        run: docker compose up -d
+
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 30); do
+            if node scripts/check-containers.mjs; then exit 0; fi
+            echo "waiting for containers... ($i/30)"
+            sleep 5
+          done
+          echo "::error::Containers did not become healthy in 150s"
+          docker compose ps
+          docker compose logs --tail=50
+          exit 1
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

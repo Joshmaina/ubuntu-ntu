@@ -1,0 +1,35 @@
+{
+  "name": "ubuntu-ntu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline-first, tone-aware platform for learning and preserving African languages",
+  "license": "Apache-2.0",
+  "author": "Joshua Maina and the UBUNTU-NTU contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Joshmaina/ubuntu-ntu.git"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:core": "pnpm --filter @ubuntu-ntu/core test",
+    "test:coverage": "turbo run test:coverage",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "check:purity": "node scripts/check-core-purity.mjs",
+    "verify": "pnpm typecheck && pnpm check:purity && pnpm test:coverage",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:health": "node scripts/check-containers.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  }
+}

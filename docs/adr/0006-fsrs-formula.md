@@ -1,14 +1,23 @@
 # ADR-0006: Canonical FSRS-4.5 retrievability formula
 
-**Status:** **Accepted** — default adopted, reversible
-**Date:** 2026-08-10 · *Revised 2026-08-10: downgraded from blocking*
+**Status:** **Accepted** — implemented and verified at M1
+**Date:** 2026-08-10 · *Revised 2026-08-10 (downgraded from blocking)* ·
+*Revised 2026-08-11 (formula corrected against the reference spec)*
 **Requirements:** FR-080, FR-082
 
-> **Revision note.** This ADR previously declared M1 blocked pending a decision. That was
-> an overstatement and has been corrected. The choice is isolated to a single exported
+> **Revision note 1.** This ADR previously declared M1 blocked pending a decision. That
+> was an overstatement and has been corrected. The choice is isolated to a single exported
 > constant and is reversible in roughly two hours including regenerated fixtures. A
 > reversible decision does not warrant blocking work — it warrants a documented default
-> and a structure that makes reversal cheap. Both are specified below.
+> and a structure that makes reversal cheap.
+>
+> **Revision note 2 — the exponent in this document was wrong.** An earlier draft wrote
+> the exponent as `^(-1/DECAY)`, which with `DECAY = -0.5` evaluates to `^2` — a function
+> that *increases* without bound rather than decaying. The correct form is `^DECAY`
+> directly. That draft carried an explicit warning not to trust it without checking
+> against the reference implementation, and checking is what caught it. **This is the
+> external-oracle discipline working exactly as intended**, and it is the reason that
+> discipline is mandatory rather than advisory.
 
 ## Context
 
@@ -18,18 +27,27 @@ The project's original onboarding brief specified the retrievability formula as:
 R(t, S) = (1 + factor · (t / S))^(-1)
 ```
 
-The canonical FSRS-4.5 formula is:
+The canonical FSRS-4.5 formula, verified against the FSRS reference specification
+(`open-spaced-repetition/awesome-fsrs` wiki, "The Algorithm", retrieved 2026-08-11):
 
 ```text
-R(t, S) = (1 + FACTOR · t / S)^(-1 / DECAY)
+R(t, S) = (1 + FACTOR · t / S) ^ DECAY
 
 where  DECAY  = -0.5
        FACTOR = 19/81
 ```
 
-The difference is the exponent: `-1` versus `-1/DECAY` (which evaluates to `-0.5`, since
-`-1 / -0.5 = 2`… **note:** the sign and reciprocal handling here must be confirmed
-against the reference implementation during M1, not taken from this document).
+`FACTOR` is not a free parameter — it is derived so that `R(S, S) = 0.9` exactly:
+
+```text
+(1 + 19/81) ^ -0.5  =  (100/81) ^ -0.5  =  0.9   ✓
+```
+
+This is what makes "stability" mean "the interval at which recall probability is 90%".
+Every other formula in the model depends on that identity holding, so it is asserted
+directly in the test suite rather than assumed.
+
+The difference from the brief is the exponent: `-1` versus `-0.5`.
 
 These are materially different forgetting curves. The `^-1` form decays faster initially
 and has a heavier tail. Using it means the algorithm is not FSRS-4.5 — it is a different
@@ -54,15 +72,18 @@ The curve parameters live in a single exported object, not scattered through the
 scheduling code:
 
 ```typescript
-// packages/core/src/fsrs/constants.ts
-export const CURVE = {
-  DECAY:  -0.5,
-  FACTOR: 19 / 81,
-} as const;
+// packages/core/src/constants.ts
+export const DECAY = -0.5;
+export const FACTOR = 19 / 81;
 ```
 
 Switching to the simplified form is an edit to this file plus regenerated fixtures —
 roughly two hours, not a rewrite.
+
+**FSRS-4.5 has 17 parameters, not 19.** FSRS-5 introduced two more (w17, w18) for the
+same-day / short-term stability path. FSRS-4.5 therefore has no same-day formula, and the
+implementation has two stability paths — recall and lapse — not three. An earlier draft
+of the roadmap said three; that was FSRS-5's shape.
 
 ### 2. Expected values come from an external oracle, not from us
 
