@@ -20,6 +20,14 @@ name: Gikuyu
 nativeName: Gĩkũyũ
 isTonal: true
 
+# Geographic scope (ADR-0009). Gĩkũyũ is one of the genuinely single-country
+# African languages, so alsoSpokenIn is empty — but the field is REQUIRED so
+# that authors state this consciously rather than by omission. Most African
+# languages are cross-border: Swahili spans KE/TZ/UG/CD/RW/BI, Somali SO/ET/KE/DJ,
+# Hausa NG/NE/GH/CM.
+countryCode: KE
+alsoSpokenIn: []
+
 toneSystem:
   levels: [low, high]
   # Tone is NOT written in standard Gĩkũyũ orthography. This is precisely why

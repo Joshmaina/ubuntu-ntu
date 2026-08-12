@@ -4,6 +4,15 @@ code: ki-central
 language: ki
 name: Gĩkũyũ (Central)
 region: Central Kenya
+
+# Geographic lock (ADR-0009). Contribution rights are scoped to this pair, and
+# a dialect id can never be re-pointed at a different country.
+countryCode: KE
+# Deliberately more specific than the country. Gĩkũyũ varieties differ across
+# Nyeri, Murang'a and Kiambu in ways that matter for tone and lexicon — the
+# exact ambiguity this locking exists to prevent. "Nyeri" is PROVISIONAL and
+# must be confirmed by the designated authority.
+communityRegion: Nyeri, Central
 description: >
   Provisional pilot variety. The internal variation across Gĩkũyũ-speaking
   areas has NOT been researched for this project, and "Central" is a working

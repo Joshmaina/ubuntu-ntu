@@ -55,7 +55,7 @@ async function newUser(): Promise<{ userId: string; accessToken: string; refresh
   const response = await app.inject({
     method: 'POST',
     url: '/v1/auth/register',
-    payload: { email, password: 'correct-horse-battery' },
+    payload: { email, password: 'correct-horse-battery', homeCountryCode: 'KE' },
   });
   expect(response.statusCode).toBe(201);
 
@@ -104,7 +104,7 @@ describe('registration and login', () => {
 
   it('rejects a duplicate email', async () => {
     const email = `dup-${randomUUID()}@example.test`;
-    const payload = { email, password: 'correct-horse-battery' };
+    const payload = { email, password: 'correct-horse-battery', homeCountryCode: 'KE' };
     expect((await app.inject({ method: 'POST', url: '/v1/auth/register', payload })).statusCode).toBe(201);
     expect((await app.inject({ method: 'POST', url: '/v1/auth/register', payload })).statusCode).toBe(409);
   });
@@ -112,7 +112,11 @@ describe('registration and login', () => {
   it('never stores the password in plaintext', async () => {
     const email = `hash-${randomUUID()}@example.test`;
     const password = 'a-very-distinctive-password';
-    await app.inject({ method: 'POST', url: '/v1/auth/register', payload: { email, password } });
+    await app.inject({
+      method: 'POST',
+      url: '/v1/auth/register',
+      payload: { email, password, homeCountryCode: 'KE' },
+    });
 
     const [row] = await db
       .select({ h: tables.users.passwordHash })
@@ -127,7 +131,11 @@ describe('registration and login', () => {
   it('logs in with correct credentials', async () => {
     const email = `login-${randomUUID()}@example.test`;
     const password = 'correct-horse-battery';
-    await app.inject({ method: 'POST', url: '/v1/auth/register', payload: { email, password } });
+    await app.inject({
+      method: 'POST',
+      url: '/v1/auth/register',
+      payload: { email, password, homeCountryCode: 'KE' },
+    });
 
     const response = await app.inject({
       method: 'POST',
@@ -142,7 +150,7 @@ describe('registration and login', () => {
     await app.inject({
       method: 'POST',
       url: '/v1/auth/register',
-      payload: { email, password: 'correct-horse-battery' },
+      payload: { email, password: 'correct-horse-battery', homeCountryCode: 'KE' },
     });
 
     const response = await app.inject({
@@ -159,7 +167,7 @@ describe('registration and login', () => {
     await app.inject({
       method: 'POST',
       url: '/v1/auth/register',
-      payload: { email, password: 'correct-horse-battery' },
+      payload: { email, password: 'correct-horse-battery', homeCountryCode: 'KE' },
     });
 
     const wrongPassword = await app.inject({

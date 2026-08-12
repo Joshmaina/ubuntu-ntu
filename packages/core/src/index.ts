@@ -14,3 +14,4 @@ export * from './constants.js';
 export * from './fsrs.js';
 export * from './tone.js';
 export * from './gloss.js';
+export * from './geo.js';

@@ -34,18 +34,23 @@ async function main(): Promise<void> {
 
     for (const { language, dialects, vocabulary, skills, lessons } of languages) {
       await client.query(
-        `INSERT INTO languages (id, name, native_name, is_tonal, metadata)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO languages
+           (id, name, native_name, is_tonal, country_code, also_spoken_in, metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT (id) DO UPDATE SET
            name = EXCLUDED.name,
            native_name = EXCLUDED.native_name,
            is_tonal = EXCLUDED.is_tonal,
+           country_code = EXCLUDED.country_code,
+           also_spoken_in = EXCLUDED.also_spoken_in,
            metadata = EXCLUDED.metadata`,
         [
           language.code,
           language.name,
           language.nativeName,
           language.isTonal,
+          language.countryCode,
+          language.alsoSpokenIn,
           JSON.stringify({
             toneSystem: language.toneSystem ?? null,
             scripts: language.scripts,
@@ -58,13 +63,15 @@ async function main(): Promise<void> {
       for (const dialect of dialects) {
         await client.query(
           `INSERT INTO dialects
-             (id, language_id, name, region, description,
+             (id, language_id, name, region, description, country_code, community_region,
               authority_name, authority_affiliation, authority_confirmed_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
            ON CONFLICT (id) DO UPDATE SET
              name = EXCLUDED.name,
              region = EXCLUDED.region,
              description = EXCLUDED.description,
+             country_code = EXCLUDED.country_code,
+             community_region = EXCLUDED.community_region,
              authority_name = EXCLUDED.authority_name,
              authority_affiliation = EXCLUDED.authority_affiliation,
              authority_confirmed_at = EXCLUDED.authority_confirmed_at`,
@@ -74,6 +81,8 @@ async function main(): Promise<void> {
             dialect.name,
             dialect.region ?? null,
             dialect.description ?? null,
+            dialect.countryCode,
+            dialect.communityRegion,
             dialect.authority.name,
             dialect.authority.affiliation,
             dialect.authority.confirmedAt,
@@ -87,14 +96,18 @@ async function main(): Promise<void> {
       for (const item of vocabulary) {
         await client.query(
           `INSERT INTO vocabulary_items
-             (id, dialect_id, target, ipa, tones, anchors, part_of_speech, audio_path, notes)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             (id, dialect_id, target, ipa, tones, anchors, part_of_speech,
+              register, addressee, image, audio_path, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
            ON CONFLICT (id) DO UPDATE SET
              target = EXCLUDED.target,
              ipa = EXCLUDED.ipa,
              tones = EXCLUDED.tones,
              anchors = EXCLUDED.anchors,
              part_of_speech = EXCLUDED.part_of_speech,
+             register = EXCLUDED.register,
+             addressee = EXCLUDED.addressee,
+             image = EXCLUDED.image,
              audio_path = EXCLUDED.audio_path,
              notes = EXCLUDED.notes`,
           [
@@ -105,6 +118,9 @@ async function main(): Promise<void> {
             item.tones ? JSON.stringify(item.tones) : null,
             JSON.stringify(item.anchors),
             item.partOfSpeech ?? null,
+            item.register,
+            item.addressee ?? null,
+            item.image ? JSON.stringify(item.image) : null,
             item.audio ?? null,
             item.notes ?? null,
           ],
@@ -148,12 +164,13 @@ async function main(): Promise<void> {
 
       for (const lesson of lessons) {
         await client.query(
-          `INSERT INTO lessons (id, skill_id, title, order_index, xp_reward, validated)
-           VALUES ($1, $2, $3, $4, $5, $6)
+          `INSERT INTO lessons (id, skill_id, title, order_index, xp_reward, register, validated)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
            ON CONFLICT (id) DO UPDATE SET
              title = EXCLUDED.title,
              order_index = EXCLUDED.order_index,
              xp_reward = EXCLUDED.xp_reward,
+             register = EXCLUDED.register,
              validated = EXCLUDED.validated`,
           [
             lesson.id,
@@ -161,6 +178,7 @@ async function main(): Promise<void> {
             JSON.stringify(lesson.title),
             lesson.orderIndex,
             lesson.xpReward,
+            lesson.register ?? null,
             lesson.validated,
           ],
         );

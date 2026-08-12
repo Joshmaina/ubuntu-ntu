@@ -56,6 +56,8 @@ describe('languageSchema', () => {
     name: 'Gikuyu',
     nativeName: 'Gĩkũyũ',
     isTonal: true,
+    countryCode: 'KE',
+    alsoSpokenIn: [],
     toneSystem: { levels: ['low', 'high'], markedInOrthography: false },
     scripts: ['latin'],
     anchorLanguages: ['en'],
@@ -82,6 +84,43 @@ describe('languageSchema', () => {
     const bad = { ...valid, toneSystem: { levels: ['sideways'], markedInOrthography: false } };
     expect(languageSchema.safeParse(bad).success).toBe(false);
   });
+
+  // --- Geographic scope (ADR-0009) ---------------------------------------
+
+  it('requires a country code', () => {
+    const { countryCode: _omitted, ...rest } = valid;
+    expect(languageSchema.safeParse(rest).success).toBe(false);
+  });
+
+  it('rejects a malformed country code', () => {
+    for (const bad of ['ke', 'KEN', 'K', '1E']) {
+      expect(languageSchema.safeParse({ ...valid, countryCode: bad }).success).toBe(false);
+    }
+  });
+
+  /**
+   * Most African languages cross borders. A single-country model would force
+   * the data to assert falsehoods such as "Swahili belongs to Kenya".
+   */
+  it('records additional countries for a cross-border language', () => {
+    const swahili = {
+      ...valid,
+      code: 'sw',
+      countryCode: 'TZ',
+      alsoSpokenIn: ['KE', 'UG', 'CD', 'RW', 'BI'],
+    };
+    const parsed = languageSchema.parse(swahili);
+    expect(parsed.alsoSpokenIn).toHaveLength(5);
+  });
+
+  it('defaults alsoSpokenIn to empty for a single-country language', () => {
+    const { alsoSpokenIn: _omitted, ...rest } = valid;
+    expect(languageSchema.parse(rest).alsoSpokenIn).toEqual([]);
+  });
+
+  it('rejects a malformed code inside alsoSpokenIn', () => {
+    expect(languageSchema.safeParse({ ...valid, alsoSpokenIn: ['KE', 'bad'] }).success).toBe(false);
+  });
 });
 
 describe('dialectSchema', () => {
@@ -89,6 +128,8 @@ describe('dialectSchema', () => {
     code: 'ki-central',
     language: 'ki',
     name: 'Gĩkũyũ (Central)',
+    countryCode: 'KE',
+    communityRegion: 'Nyeri, Central',
     authority: { name: null, affiliation: null, confirmedAt: null },
   };
 
@@ -108,6 +149,30 @@ describe('dialectSchema', () => {
   it('requires the authority block to be present', () => {
     const { authority: _omitted, ...rest } = valid;
     expect(dialectSchema.safeParse(rest).success).toBe(false);
+  });
+
+  // --- Geographic lock (ADR-0009) ----------------------------------------
+
+  it('requires a country code', () => {
+    const { countryCode: _omitted, ...rest } = valid;
+    expect(dialectSchema.safeParse(rest).success).toBe(false);
+  });
+
+  /**
+   * Country alone is insufficient: varieties WITHIN one country differ in tone
+   * and lexicon, which is the ambiguity the locking exists to prevent.
+   */
+  it('requires a community region', () => {
+    const { communityRegion: _omitted, ...rest } = valid;
+    expect(dialectSchema.safeParse(rest).success).toBe(false);
+  });
+
+  it('rejects an empty community region', () => {
+    expect(dialectSchema.safeParse({ ...valid, communityRegion: '' }).success).toBe(false);
+  });
+
+  it('rejects a malformed country code', () => {
+    expect(dialectSchema.safeParse({ ...valid, countryCode: 'ke' }).success).toBe(false);
   });
 });
 

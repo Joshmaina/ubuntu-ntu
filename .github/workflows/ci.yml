@@ -110,7 +110,7 @@ jobs:
           JWT_ACCESS_SECRET: ci-access-secret-long-enough-for-validation
           JWT_REFRESH_SECRET: ci-refresh-secret-long-enough-for-validation
 
-      # The spec is generated, so a stale committed copy is a real defect.
+      # Both specs are generated, so a stale committed copy is a real defect.
       - name: OpenAPI spec is up to date
         run: |
           pnpm --filter @ubuntu-ntu/api openapi
@@ -123,6 +123,17 @@ jobs:
           UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
           JWT_ACCESS_SECRET: ci-access-secret-long-enough-for-validation
           JWT_REFRESH_SECRET: ci-refresh-secret-long-enough-for-validation
+
+      - name: SCHEMA.sql is up to date
+        run: |
+          pnpm schema:dump
+          if ! git diff --exit-code --quiet docs/SCHEMA.sql; then
+            echo "::error::docs/SCHEMA.sql is stale. Run: pnpm schema:dump"
+            git diff docs/SCHEMA.sql
+            exit 1
+          fi
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
 
       - name: Tear down
         if: always()

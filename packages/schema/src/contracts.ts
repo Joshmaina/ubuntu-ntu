@@ -24,11 +24,45 @@ export const toneSchema = z.enum(['low', 'mid', 'high', 'rising', 'falling']);
 
 // --- Language and variety --------------------------------------------------
 
+/** ISO 3166-1 alpha-2. */
+export const countryCodeSchema = z
+  .string()
+  .regex(/^[A-Z]{2}$/, 'must be ISO 3166-1 alpha-2, e.g. KE');
+
+/**
+ * Social register. Mandatory rather than stylistic in many African languages —
+ * addressing an elder with a peer form is disrespect, not a grammar slip.
+ */
+export const registerSchema = z.enum([
+  'neutral',
+  'familiar',
+  'respectful',
+  'formal',
+  'honorific',
+]);
+
+export const addresseeSchema = z.enum([
+  'peer',
+  'elder',
+  'younger',
+  'group',
+  'stranger',
+  'child',
+]);
+
 export const languageSchema = z.object({
   code: z.string().min(2).max(10),
   name: z.string().min(1),
   nativeName: z.string().min(1),
   isTonal: z.boolean(),
+  /** Primary country of origin (ADR-0009). */
+  countryCode: countryCodeSchema,
+  /**
+   * Additional countries where natively spoken. Required (may be empty) so that
+   * authors must consciously state that a language is single-country rather
+   * than omitting the question — most African languages cross borders.
+   */
+  alsoSpokenIn: z.array(countryCodeSchema).default([]),
   toneSystem: z
     .object({
       levels: z.array(toneSchema).min(1),
@@ -43,6 +77,14 @@ export const dialectSchema = z.object({
   code: z.string().min(2).max(32),
   language: z.string().min(2).max(10),
   name: z.string().min(1),
+  /** Country this dialect is locked to (ADR-0009). */
+  countryCode: countryCodeSchema,
+  /**
+   * Specific speech community, e.g. "Eldoret, Rift Valley". Required: two
+   * varieties within one country may differ in tone and lexicon, which is the
+   * ambiguity the locking exists to prevent, so country alone is insufficient.
+   */
+  communityRegion: z.string().min(1).max(100),
   region: z.string().optional(),
   description: z.string().optional(),
   authority: z.object({
@@ -77,6 +119,8 @@ export const vocabularyItemSchema = z.object({
   tones: z.array(toneSchema).optional(),
   anchors: localisedSchema,
   partOfSpeech: z.string().optional(),
+  register: registerSchema.default('neutral'),
+  addressee: addresseeSchema.optional(),
   audio: z.string().optional(),
   /**
    * Present from day one though the image exercise types ship at M7. Schema is
@@ -195,8 +239,33 @@ export const lessonSchema = z.object({
    * published. The bundle builder refuses anything still false.
    */
   validated: z.boolean().default(false),
+  /** Lesson-level register, inherited by exercises that do not override it. */
+  register: registerSchema.optional(),
   exercises: z.array(exerciseSchema).min(1),
 });
+
+/**
+ * A proverb or idiom.
+ *
+ * Structurally unlike a sentence, which is why it needs its own type: the
+ * literal gloss usually reads as nonsense, the fluent meaning loses the
+ * imagery, and neither tells a learner WHEN to say it. All three are required.
+ */
+export const proverbSchema = z.object({
+  id: z.string().regex(ID),
+  dialect: z.string().min(2).max(32),
+  target: z.string().min(1),
+  literalGloss: localisedSchema,
+  meaning: localisedSchema,
+  /** The situations in which it is appropriately used. */
+  usageContext: localisedSchema,
+  tones: z.array(toneSchema).optional(),
+  audio: z.string().optional(),
+  attribution: z.string().optional(),
+  validated: z.boolean().default(false),
+});
+
+export type Proverb = z.infer<typeof proverbSchema>;
 
 export type Lesson = z.infer<typeof lessonSchema>;
 

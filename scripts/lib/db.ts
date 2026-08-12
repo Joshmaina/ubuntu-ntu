@@ -72,7 +72,14 @@ export function connectionString(): string {
   return `postgresql://${user}:${password}@${host}:${port}/${database}`;
 }
 
-/** Tables this project owns. Anything else in `public` is a red flag. */
+/**
+ * Tables this project owns. Anything else in `public` is a red flag.
+ *
+ * MUST be updated whenever a migration adds a table — the guard is an
+ * allowlist, so an omission blocks migrate/seed with a confusing "unexpected
+ * tables" error. That strictness is deliberate: a permissive guard would not
+ * have caught the inventorydb hijack it exists to prevent.
+ */
 const OWNED_TABLES = new Set([
   'schema_migrations',
   'languages',
@@ -87,6 +94,12 @@ const OWNED_TABLES = new Set([
   'user_fsrs_cards',
   'fsrs_review_logs',
   'bundles',
+  // 0004 — geographic locking
+  'audio_contributions',
+  'contribution_votes',
+  // 0005 — content-model gaps
+  'proverbs',
+  'learner_profiles',
 ]);
 
 export async function connect(): Promise<pg.Client> {

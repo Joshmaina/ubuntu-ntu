@@ -45,6 +45,21 @@ export const envSchema = z.object({
   MAX_CLOCK_SKEW_MS: z.coerce.number().int().positive().default(86_400_000),
   /** Cap on events per ingest request. */
   MAX_EVENT_BATCH: z.coerce.number().int().positive().default(500),
+
+  /**
+   * Whether a VERIFIED contributor outside a dialect's country may still
+   * contribute (ADR-0009).
+   *
+   * OFF by default, matching the strict geographic lock. The consequence is
+   * documented and deliberate: a Yoruba speaker in London is refused regardless
+   * of fluency, even though the diaspora is a primary audience in
+   * 02-CONCEPT-NOTE.md. Exposed as configuration so the policy can be changed
+   * by decision rather than by editing the rule.
+   */
+  ALLOW_DIASPORA_CONTRIBUTIONS: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;

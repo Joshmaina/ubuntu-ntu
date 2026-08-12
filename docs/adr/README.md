@@ -37,6 +37,7 @@ one. The record of what we believed, and when, is the point.
 | [0006](0006-fsrs-formula.md) | Canonical FSRS-4.5 retrievability formula | Accepted — default, reversible |
 | [0007](0007-web-platform.md) | Web as a first-class learner surface | Accepted |
 | [0008](0008-visual-learning.md) | Image-based visual learning | Accepted |
+| [0009](0009-geographic-locking.md) | Country-based geographic locking | Accepted — one policy flag open |
 
 ## Template
 

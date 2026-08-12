@@ -61,9 +61,17 @@ paths:
                   type: string
                   maxLength: 10
                   default: en
+                uiLocale:
+                  type: string
+                  maxLength: 10
+                  default: en
+                homeCountryCode:
+                  type: string
+                  pattern: ^[A-Z]{2}$
               required:
                 - email
                 - password
+                - homeCountryCode
               additionalProperties: false
       responses:
         "201":
@@ -254,6 +262,12 @@ paths:
                 properties:
                   dialect:
                     type: string
+                  countryCode:
+                    type: string
+                  communityRegion:
+                    type: string
+                  languageId:
+                    type: string
                   bundles:
                     type: array
                     items:
@@ -280,7 +294,25 @@ paths:
                       additionalProperties: false
                 required:
                   - dialect
+                  - countryCode
+                  - communityRegion
+                  - languageId
                   - bundles
+                additionalProperties: false
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
                 additionalProperties: false
   /v1/events:
     post:
@@ -449,6 +481,315 @@ paths:
                   - cards
                 additionalProperties: false
         "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/contributions/audio:
+    post:
+      tags:
+        - contributions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dialectId:
+                  type: string
+                  minLength: 2
+                  maxLength: 32
+                promptText:
+                  type: string
+                  minLength: 1
+                audioPath:
+                  type: string
+                  minLength: 1
+                vocabItemId:
+                  type: string
+                  maxLength: 128
+                durationMs:
+                  type: integer
+                  exclusiveMinimum: true
+                  minimum: 0
+                snrDb:
+                  type: number
+              required:
+                - dialectId
+                - promptText
+                - audioPath
+              additionalProperties: false
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                  dialectId:
+                    type: string
+                  countryCode:
+                    type: string
+                required:
+                  - id
+                  - status
+                  - dialectId
+                  - countryCode
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "403":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/contributions/{id}/vote:
+    post:
+      tags:
+        - contributions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vote:
+                  type: string
+                  enum:
+                    - approve
+                    - reject
+                    - wrong_dialect
+                reason:
+                  type: string
+                  maxLength: 50
+              required:
+                - vote
+              additionalProperties: false
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recorded:
+                    type: boolean
+                    enum:
+                      - true
+                  vote:
+                    type: string
+                required:
+                  - recorded
+                  - vote
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "403":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "409":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+  /v1/contributions/queue:
+    get:
+      tags:
+        - contributions
+      parameters:
+        - schema:
+            type: string
+            minLength: 2
+            maxLength: 32
+          in: query
+          name: dialectId
+          required: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dialectId:
+                    type: string
+                  countryCode:
+                    type: string
+                  contributions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        promptText:
+                          type: string
+                        audioPath:
+                          type: string
+                        status:
+                          type: string
+                      required:
+                        - id
+                        - promptText
+                        - audioPath
+                        - status
+                      additionalProperties: false
+                required:
+                  - dialectId
+                  - countryCode
+                  - contributions
+                additionalProperties: false
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "403":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - error
+                  - message
+                additionalProperties: false
+        "404":
           description: Default Response
           content:
             application/json:

@@ -31,6 +31,7 @@ import {
   verifyAccessToken,
 } from './auth/tokens.js';
 import { ingestEvents } from './events/ingest.js';
+import { registerContributionRoutes } from './contributions/routes.js';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -129,11 +130,22 @@ export async function buildApp({ db, env, now = Date.now }: AppDeps): Promise<Fa
     url: '/v1/auth/register',
     schema: {
       tags: ['auth'],
-      body: credentials.extend({ anchorLanguage: z.string().max(10).default('en') }),
+      body: credentials.extend({
+        anchorLanguage: z.string().max(10).default('en'),
+        uiLocale: z.string().max(10).default('en'),
+        /**
+         * ISO 3166-1 alpha-2. Required because contribution rights are scoped
+         * to it (ADR-0009). Learners are unaffected by the value; only
+         * contributors are.
+         */
+        homeCountryCode: z
+          .string()
+          .regex(/^[A-Z]{2}$/, 'must be ISO 3166-1 alpha-2, e.g. KE'),
+      }),
       response: { 201: tokenResponse, 409: errorResponse },
     },
     handler: async (request, reply) => {
-      const { email, password, anchorLanguage } = request.body;
+      const { email, password, anchorLanguage, uiLocale, homeCountryCode } = request.body;
 
       const existing = await db
         .select({ id: tables.users.id })
@@ -152,8 +164,24 @@ export async function buildApp({ db, env, now = Date.now }: AppDeps): Promise<Fa
 
       const [user] = await db
         .insert(tables.users)
-        .values({ email: email.toLowerCase(), passwordHash, anchorLanguage })
+        .values({
+          email: email.toLowerCase(),
+          passwordHash,
+          anchorLanguage,
+          uiLocale,
+          homeCountryCode,
+        })
         .returning({ id: tables.users.id });
+
+      // Every account gets a default profile immediately, so the phase-2
+      // switchover to profile-keyed progress has nothing to backfill.
+      await db.insert(tables.learnerProfiles).values({
+        accountId: user!.id,
+        displayName: 'Default',
+        anchorLanguage,
+        uiLocale,
+        isDefault: true,
+      });
 
       return reply.code(201).send(await issueTokens(db, user!.id, env));
     },
@@ -235,6 +263,10 @@ export async function buildApp({ db, env, now = Date.now }: AppDeps): Promise<Fa
       response: {
         200: z.object({
           dialect: z.string(),
+          /** Geographic scope, always present in bundle metadata (ADR-0009). */
+          countryCode: z.string(),
+          communityRegion: z.string(),
+          languageId: z.string(),
           bundles: z.array(
             z.object({
               id: z.string(),
@@ -245,17 +277,38 @@ export async function buildApp({ db, env, now = Date.now }: AppDeps): Promise<Fa
             }),
           ),
         }),
+        404: errorResponse,
       },
     },
-    handler: async (request) => {
+    handler: async (request, reply) => {
+      const [dialect] = await db
+        .select({
+          id: tables.dialects.id,
+          languageId: tables.dialects.languageId,
+          countryCode: tables.dialects.countryCode,
+          communityRegion: tables.dialects.communityRegion,
+        })
+        .from(tables.dialects)
+        .where(eq(tables.dialects.id, request.query.dialect))
+        .limit(1);
+
+      if (dialect === undefined) {
+        return reply
+          .code(404)
+          .send({ error: 'dialect_not_found', message: `unknown dialect "${request.query.dialect}"` });
+      }
+
       const rows = await db
         .select()
         .from(tables.bundles)
-        .where(eq(tables.bundles.dialectId, request.query.dialect))
+        .where(eq(tables.bundles.dialectId, dialect.id))
         .orderBy(asc(tables.bundles.version));
 
       return {
-        dialect: request.query.dialect,
+        dialect: dialect.id,
+        countryCode: dialect.countryCode,
+        communityRegion: dialect.communityRegion,
+        languageId: dialect.languageId,
         bundles: rows.map((b) => ({
           id: b.id,
           version: b.version,
@@ -354,6 +407,12 @@ export async function buildApp({ db, env, now = Date.now }: AppDeps): Promise<Fa
         })),
       };
     },
+  });
+
+  await registerContributionRoutes(app, {
+    db,
+    requireAuth,
+    allowDiasporaOverride: env.ALLOW_DIASPORA_CONTRIBUTIONS,
   });
 
   return app;

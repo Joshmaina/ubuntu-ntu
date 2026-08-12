@@ -10,6 +10,7 @@
  * irreplaceable data are `fsrs_review_logs` and `users`.
  */
 
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   varchar,
@@ -24,6 +25,7 @@ import {
   primaryKey,
   index,
   uniqueIndex,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 // --- Languages and varieties -----------------------------------------------
@@ -34,6 +36,19 @@ export const languages = pgTable('languages', {
   name: varchar('name', { length: 64 }).notNull(),
   nativeName: varchar('native_name', { length: 64 }).notNull(),
   isTonal: boolean('is_tonal').notNull().default(false),
+
+  /** ISO 3166-1 alpha-2 of the primary country of origin (ADR-0009). */
+  countryCode: varchar('country_code', { length: 2 }).notNull(),
+  /**
+   * Additional countries where this language is natively spoken.
+   * Most African languages are cross-border; a single country column alone
+   * would assert falsehoods such as "Swahili belongs to Kenya".
+   */
+  alsoSpokenIn: varchar('also_spoken_in', { length: 2 })
+    .array()
+    .notNull()
+    .default(sql`'{}'`),
+
   /** Tone inventory, scripts, anchor languages — shape varies by language. */
   metadata: jsonb('metadata').notNull().default({}),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -51,6 +66,16 @@ export const dialects = pgTable(
     region: varchar('region', { length: 128 }),
     description: text('description'),
 
+    /** ISO 3166-1 alpha-2. Dialect ids are strictly scoped to this (ADR-0009). */
+    countryCode: varchar('country_code', { length: 2 }).notNull(),
+    /**
+     * Specific speech community, e.g. "Eldoret, Rift Valley".
+     * Finer-grained than country: two varieties within one country may differ
+     * in tone and lexicon, which is the ambiguity this locking exists to
+     * prevent.
+     */
+    communityRegion: varchar('community_region', { length: 100 }).notNull(),
+
     /**
      * NFR-050/NFR-051: content in a variety with no designated linguistic
      * authority must not reach learners. Nullable here so provisional content
@@ -62,7 +87,13 @@ export const dialects = pgTable(
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('idx_dialects_language').on(t.languageId)],
+  (t) => [
+    index('idx_dialects_language').on(t.languageId),
+    index('idx_dialects_country').on(t.countryCode),
+    index('idx_dialects_country_region').on(t.countryCode, t.communityRegion),
+    // Guarantees a dialect id can never be re-pointed at a different country.
+    unique('dialects_country_id_unique').on(t.countryCode, t.id),
+  ],
 );
 
 // --- Skill graph -----------------------------------------------------------
@@ -111,6 +142,8 @@ export const lessons = pgTable(
     title: jsonb('title').notNull(),
     orderIndex: integer('order_index').notNull(),
     xpReward: integer('xp_reward').notNull().default(10),
+    /** Lesson-level register, inherited by exercises that do not override it. */
+    register: varchar('register', { length: 16 }),
 
     /** Publication gate (NFR-050). False until a native speaker signs off. */
     validated: boolean('validated').notNull().default(false),
@@ -135,6 +168,17 @@ export const vocabularyItems = pgTable(
     /** { en: "market", fr: "marché" } */
     anchors: jsonb('anchors').notNull(),
     partOfSpeech: varchar('part_of_speech', { length: 32 }),
+
+    /**
+     * Social register. In many African languages this is grammatically
+     * MANDATORY rather than stylistic — addressing an elder with a peer form is
+     * disrespect, not a grammar slip. Neutral by default so existing content
+     * remains valid, but tonal/honorific languages should set it explicitly.
+     */
+    register: varchar('register', { length: 16 }).notNull().default('neutral'),
+    /** Who the utterance is addressed to. Varies independently of register. */
+    addressee: varchar('addressee', { length: 16 }),
+
     audioPath: text('audio_path'),
     /**
      * Visual learning (ADR-0008). Populated from day one although the image
@@ -178,12 +222,57 @@ export const users = pgTable(
     /** argon2id. Never a plaintext password, never logged (FR-002). */
     passwordHash: text('password_hash').notNull(),
     anchorLanguage: varchar('anchor_language', { length: 10 }).notNull().default('en'),
+    /** Language of the app interface. Independent of anchorLanguage. */
+    uiLocale: varchar('ui_locale', { length: 10 }).notNull().default('en'),
     /** Measured during onboarding; pitch feedback is relative to this (FR-067). */
     pitchBaselineHz: real('pitch_baseline_hz'),
+
+    /** ISO 3166-1 alpha-2 (ADR-0009). */
+    homeCountryCode: varchar('home_country_code', { length: 2 }).notNull(),
+    /**
+     * Dialects this contributor is verified to contribute to. Competence-based
+     * rather than passport-based, and granted by a designated authority rather
+     * than self-asserted.
+     */
+    verifiedDialects: varchar('verified_dialects', { length: 32 })
+      .array()
+      .notNull()
+      .default(sql`'{}'`),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
-  (t) => [uniqueIndex('idx_users_email').on(t.email)],
+  (t) => [
+    uniqueIndex('idx_users_email').on(t.email),
+    index('idx_users_home_country').on(t.homeCountryCode),
+  ],
+);
+
+/**
+ * Multiple learners per account. Families share one phone; without this a
+ * second child overwrites the first child's progress.
+ *
+ * Phase 1: the table exists and every account has a default profile. Phase 2
+ * moves the progress primary key onto profile_id — deliberately not done in the
+ * same change as geographic locking (migrations/0005).
+ */
+export const learnerProfiles = pgTable(
+  'learner_profiles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    displayName: varchar('display_name', { length: 64 }).notNull(),
+    anchorLanguage: varchar('anchor_language', { length: 10 }).notNull().default('en'),
+    uiLocale: varchar('ui_locale', { length: 10 }).notNull().default('en'),
+    pitchBaselineHz: doublePrecision('pitch_baseline_hz'),
+    /** Drives stricter defaults: no leaderboards, no notifications, image rules. */
+    isChild: boolean('is_child').notNull().default(false),
+    isDefault: boolean('is_default').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('idx_profiles_account').on(t.accountId)],
 );
 
 export const refreshTokens = pgTable(
@@ -277,6 +366,100 @@ export const fsrsReviewLogs = pgTable(
   (t) => [
     // Replay ordering: reviewedAt, then id as deterministic tiebreaker.
     index('idx_review_replay').on(t.userId, t.vocabItemId, t.reviewedAt, t.id),
+  ],
+);
+
+/**
+ * Proverbs and idioms.
+ *
+ * Structurally unlike a sentence: a literal translation reads as nonsense and a
+ * fluent one loses the imagery, so BOTH are stored — plus the situations in
+ * which the proverb is actually used, without which a learner knows the words
+ * and still cannot use it.
+ */
+export const proverbs = pgTable(
+  'proverbs',
+  {
+    id: varchar('id', { length: 128 }).primaryKey(),
+    dialectId: varchar('dialect_id', { length: 32 })
+      .notNull()
+      .references(() => dialects.id, { onDelete: 'cascade' }),
+    target: text('target').notNull(),
+    /** Word-for-word. Usually reads as nonsense — that is expected and useful. */
+    literalGloss: jsonb('literal_gloss').notNull(),
+    meaning: jsonb('meaning').notNull(),
+    usageContext: jsonb('usage_context').notNull(),
+    audioPath: text('audio_path'),
+    tones: jsonb('tones'),
+    attribution: varchar('attribution', { length: 128 }),
+    validated: boolean('validated').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('idx_proverbs_dialect').on(t.dialectId)],
+);
+
+// --- Contributions ---------------------------------------------------------
+
+export const audioContributions = pgTable(
+  'audio_contributions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    contributorId: uuid('contributor_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    dialectId: varchar('dialect_id', { length: 32 })
+      .notNull()
+      .references(() => dialects.id, { onDelete: 'cascade' }),
+    vocabItemId: varchar('vocab_item_id', { length: 128 }).references(
+      () => vocabularyItems.id,
+      { onDelete: 'set null' },
+    ),
+
+    promptText: text('prompt_text').notNull(),
+    audioPath: text('audio_path').notNull(),
+    durationMs: integer('duration_ms'),
+    snrDb: doublePrecision('snr_db'),
+
+    /**
+     * Denormalised from the dialect AT SUBMISSION TIME, deliberately. If a
+     * dialect's country were later corrected, historical submissions must
+     * retain the geography under which they were accepted, or the audit trail
+     * misrepresents what was actually approved.
+     */
+    countryCode: varchar('country_code', { length: 2 }).notNull(),
+
+    /** pending | approved | rejected | withdrawn */
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+    withdrawnAt: timestamp('withdrawn_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('idx_contributions_dialect').on(t.dialectId, t.status),
+    index('idx_contributions_contributor').on(t.contributorId),
+    index('idx_contributions_country').on(t.countryCode),
+  ],
+);
+
+export const contributionVotes = pgTable(
+  'contribution_votes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    contributionId: uuid('contribution_id')
+      .notNull()
+      .references(() => audioContributions.id, { onDelete: 'cascade' }),
+    reviewerId: uuid('reviewer_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** approve | reject | wrong_dialect */
+    vote: varchar('vote', { length: 16 }).notNull(),
+    reason: varchar('reason', { length: 50 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('idx_votes_contribution').on(t.contributionId),
+    // FR-106: one vote per reviewer per submission.
+    unique('contribution_votes_unique').on(t.contributionId, t.reviewerId),
   ],
 );
 

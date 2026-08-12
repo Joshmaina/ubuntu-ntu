@@ -78,7 +78,7 @@ async function newUser(): Promise<{ userId: string; token: string }> {
   const response = await app.inject({
     method: 'POST',
     url: '/v1/auth/register',
-    payload: { email, password: 'correct-horse-battery' },
+    payload: { email, password: 'correct-horse-battery', homeCountryCode: 'KE' },
   });
   const { accessToken } = response.json<{ accessToken: string }>();
   const [row] = await db
