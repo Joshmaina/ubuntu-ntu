@@ -21,6 +21,7 @@
     "@ubuntu-ntu/config": "workspace:*",
     "@ubuntu-ntu/core": "workspace:*",
     "@ubuntu-ntu/schema": "workspace:*",
+    "@ubuntu-ntu/sync": "workspace:*",
     "drizzle-orm": "^0.38.3",
     "fastify": "^5.2.0",
     "fastify-type-provider-zod": "^4.0.2",

@@ -16,6 +16,7 @@ import {
   text,
   integer,
   real,
+  doublePrecision,
   boolean,
   timestamp,
   jsonb,
@@ -226,9 +227,12 @@ export const userFsrsCards = pgTable(
       .references(() => vocabularyItems.id, { onDelete: 'cascade' }),
 
     state: integer('state').notNull().default(0),
-    stability: real('stability').notNull().default(0),
-    difficulty: real('difficulty').notNull().default(0),
-    elapsedDays: real('elapsed_days').notNull().default(0),
+    // DOUBLE PRECISION, not REAL. float4 has ~7 significant digits and silently
+    // truncates JavaScript numbers, breaking client/server equality — see
+    // migrations/0003.
+    stability: doublePrecision('stability').notNull().default(0),
+    difficulty: doublePrecision('difficulty').notNull().default(0),
+    elapsedDays: doublePrecision('elapsed_days').notNull().default(0),
     scheduledDays: integer('scheduled_days').notNull().default(0),
     reps: integer('reps').notNull().default(0),
     lapses: integer('lapses').notNull().default(0),
@@ -264,7 +268,7 @@ export const fsrsReviewLogs = pgTable(
     /** Card state BEFORE this review. */
     state: integer('state').notNull(),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }).notNull(),
-    elapsedDays: real('elapsed_days').notNull().default(0),
+    elapsedDays: doublePrecision('elapsed_days').notNull().default(0),
     durationMs: integer('duration_ms').notNull().default(0),
     /** Installation ID, for diagnosing multi-device sync anomalies. */
     clientId: varchar('client_id', { length: 64 }),

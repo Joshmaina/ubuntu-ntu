@@ -1,0 +1,25 @@
+{
+  "name": "@ubuntu-ntu/sync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Platform-agnostic offline learning store and sync engine. Shared by mobile (expo-sqlite) and web (SQLite-WASM).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ubuntu-ntu/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "vitest": "^2.1.8"
+  }
+}
