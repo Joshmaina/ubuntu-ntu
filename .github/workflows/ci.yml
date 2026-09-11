@@ -94,9 +94,18 @@ jobs:
         env:
           UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
 
-      # Idempotency: a second run must be a no-op, not a failure.
-      - name: Re-run migrate and seed (idempotency)
-        run: pnpm migrate && pnpm seed
+      # Builds the content bundles the API serves. Until this existed, the
+      # manifest endpoint described bundles that nothing ever created.
+      - name: Build bundles
+        run: pnpm build:bundles
+        env:
+          UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
+
+      # Idempotency: a second run must be a no-op, not a failure. Bundles are
+      # content-addressed, so rebuilding unchanged content must republish
+      # nothing rather than creating a duplicate.
+      - name: Re-run migrate, seed, and build (idempotency)
+        run: pnpm migrate && pnpm seed && pnpm build:bundles
         env:
           UBUNTU_NTU_DATABASE_URL: postgresql://ubuntuntu_admin:ubuntuntu_local_dev@localhost:5433/ubuntuntu_dev
 

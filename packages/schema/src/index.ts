@@ -9,3 +9,4 @@
 export * as pg from './pg.js';
 export * as sqlite from './sqlite.js';
 export * from './contracts.js';
+export * from './bundle.js';

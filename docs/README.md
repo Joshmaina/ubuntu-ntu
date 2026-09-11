@@ -31,6 +31,7 @@ Start with the document that matches who you are.
 | [08 · Sync Protocol](08-SYNC-PROTOCOL.md) | Offline synchronisation — read before touching sync |
 | [10 · Dependencies](10-DEPENDENCIES.md) | What we use, what it costs, what replaces it |
 | [12 · Platform Strategy](12-PLATFORM-STRATEGY.md) | Web vs mobile: what is shared, what is written twice |
+| **[13 · Implementation Reference](13-IMPLEMENTATION-REFERENCE.md)** | **What is actually built, every tool and dependency, hazards found** |
 | [adr/](adr/) | Why decisions were made |
 
 ## I speak an African language and want to help
@@ -59,6 +60,7 @@ Start with the document that matches who you are.
 | 10 | [Dependency Ledger](10-DEPENDENCIES.md) | Developers |
 | 11 | [Glossary](11-GLOSSARY.md) | Everyone |
 | 12 | [Platform Strategy](12-PLATFORM-STRATEGY.md) | Developers |
+| 13 | [Implementation Reference](13-IMPLEMENTATION-REFERENCE.md) | Developers, and anyone asking what exists today |
 | — | [Decision Records](adr/) | Developers |
 
 ---

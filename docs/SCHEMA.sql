@@ -40,13 +40,17 @@ CREATE INDEX idx_contributions_dialect ON public.audio_contributions USING btree
 
 -- ----------------------------------------------------------------------
 CREATE TABLE bundles (
-    id          CHARACTER VARYING(128) NOT NULL,
-    dialect_id  CHARACTER VARYING(32) NOT NULL,
-    version     INTEGER NOT NULL,
-    size_bytes  INTEGER NOT NULL,
-    sha256      CHARACTER VARYING(64) NOT NULL,
-    lesson_ids  JSONB NOT NULL,
-    created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+    id                CHARACTER VARYING(128) NOT NULL,
+    dialect_id        CHARACTER VARYING(32) NOT NULL,
+    version           INTEGER NOT NULL,
+    size_bytes        INTEGER NOT NULL,
+    sha256            CHARACTER VARYING(64) NOT NULL,
+    lesson_ids        JSONB NOT NULL,
+    created_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    payload           TEXT,
+    format_version    INTEGER NOT NULL DEFAULT 1,
+    country_code      CHARACTER VARYING(2),
+    community_region  CHARACTER VARYING(100)
 );
 
 -- Constraints:

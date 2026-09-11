@@ -320,6 +320,50 @@ export async function buildApp({ db, env, now = Date.now }: AppDeps): Promise<Fa
     },
   });
 
+  /**
+   * Download a bundle.
+   *
+   * Returns the EXACT serialised text whose sha256 is in the manifest. The
+   * client re-hashes these bytes before installing, so the API must not
+   * re-serialise, pretty-print, or otherwise normalise the payload — any of
+   * which would change the hash and make a valid bundle look corrupt.
+   */
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: 'GET',
+    url: '/v1/bundles/:id',
+    schema: {
+      tags: ['content'],
+      params: z.object({ id: z.string().min(1).max(128) }),
+      // 200 is the raw bundle text. Fastify sends string payloads verbatim
+      // without invoking the serialiser, which is exactly what is needed: the
+      // client hashes these bytes, so any normalisation would break integrity.
+      // The content-delivery test asserts sha256(response.body) against the
+      // manifest, so a regression here fails loudly rather than silently.
+      response: { 200: z.string(), 404: errorResponse },
+    },
+    handler: async (request, reply) => {
+      const [bundle] = await db
+        .select()
+        .from(tables.bundles)
+        .where(eq(tables.bundles.id, request.params.id))
+        .limit(1);
+
+      if (bundle === undefined || bundle.payload === null) {
+        return reply
+          .code(404)
+          .send({ error: 'bundle_not_found', message: `unknown bundle "${request.params.id}"` });
+      }
+
+      // Content-addressed, therefore immutable: a given id can never mean
+      // different bytes, so it is safe to cache forever.
+      return reply
+        .header('content-type', 'application/json; charset=utf-8')
+        .header('cache-control', 'public, max-age=31536000, immutable')
+        .header('x-bundle-sha256', bundle.sha256)
+        .send(bundle.payload);
+    },
+  });
+
   // -------------------------------------------------------------------------
   // Review events  — the heart of ADR-0003
   // -------------------------------------------------------------------------

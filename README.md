@@ -6,8 +6,9 @@
 
 *Offline-first · Tone-aware · Community-owned*
 
-[![Status](https://img.shields.io/badge/status-pre--development-orange)]()
-[![Docs](https://img.shields.io/badge/docs-complete-blue)]()
+[![Status](https://img.shields.io/badge/status-M4%20in%20progress-blue)]()
+[![Tests](https://img.shields.io/badge/tests-306%20passing-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/core%20coverage-100%25-brightgreen)]()
 [![Code](https://img.shields.io/badge/license-Apache--2.0-green)]()
 [![Content](https://img.shields.io/badge/content-CC%20BY--SA%204.0%20(provisional)-lightgrey)]()
 
@@ -27,8 +28,12 @@ open archive of those languages in the process.
 The two goals are the same activity. Every recording that teaches a learner also
 preserves a language.
 
-> ⚠️ **Current status: pre-development.** The documentation set is complete. No code
-> has been written yet. See the [roadmap](docs/06-TECHNICAL-ROADMAP.md).
+> **Current status: M4 in progress.** The learning engine, database, API, offline
+> sync, and content pipeline are built and verified — **306 passing tests**, 100%
+> coverage on every shared package. What remains for M4 is the device shell.
+>
+> See the [Implementation Reference](docs/13-IMPLEMENTATION-REFERENCE.md) for exactly
+> what exists today, or the [roadmap](docs/06-TECHNICAL-ROADMAP.md) for what comes next.
 
 ---
 
@@ -99,6 +104,7 @@ Start with whichever fits you.
 | [Content Model](docs/07-CONTENT-MODEL.md) | Lesson file format and validation rules |
 | [Sync Protocol](docs/08-SYNC-PROTOCOL.md) | Offline synchronisation design |
 | [Platform Strategy](docs/12-PLATFORM-STRATEGY.md) | Web vs mobile — what is shared, what is written twice |
+| **[Implementation Reference](docs/13-IMPLEMENTATION-REFERENCE.md)** | **What is built today, every tool and dependency, hazards found** |
 | [Dependencies](docs/10-DEPENDENCIES.md) | Every dependency, its licence, and its cost |
 | [Decision Records](docs/adr/) | Why things are the way they are |
 
@@ -151,11 +157,11 @@ behind port interfaces with working free adapters.
 
 | Milestone | Gate |
 |---|---|
-| M0 · Foundation | CI green; three containers healthy |
-| M1 · Learning core | FSRS at 100% coverage; zero imports verified |
-| M2 · Schema & content | Clean migrate + seed from empty container |
-| M3 · API | Duplicate event POST proven idempotent |
-| **M4 · Walking skeleton** | **Aeroplane mode → force-close → reconnect → state correct** |
+| ✅ M0 · Foundation | CI green; three containers healthy |
+| ✅ M1 · Learning core | FSRS at 100% coverage; zero imports verified |
+| ✅ M2 · Schema & content | Clean migrate + seed from empty container |
+| ✅ M3 · API | Duplicate event POST proven idempotent |
+| ⚠️ **M4 · Walking skeleton** | **Aeroplane mode → force-close → reconnect → state correct** |
 | M5 · Sentence Deconstruction | Four stages; slow playback preserves pitch |
 | M6 · Pitch feedback | Contour renders ≤ 300 ms on a 2 GB Android device |
 | M7 · Exercise breadth | Six types, all YAML-authorable |

@@ -477,6 +477,15 @@ export const bundles = pgTable(
     sizeBytes: integer('size_bytes').notNull(),
     sha256: varchar('sha256', { length: 64 }).notNull(),
     lessonIds: jsonb('lesson_ids').notNull(),
+    /**
+     * The exact serialised text whose sha256 is recorded above. TEXT, not
+     * JSONB: JSONB normalises key order and whitespace, which would change the
+     * hash and turn every valid bundle into a spurious integrity failure.
+     */
+    payload: text('payload'),
+    formatVersion: integer('format_version').notNull().default(1),
+    countryCode: varchar('country_code', { length: 2 }),
+    communityRegion: varchar('community_region', { length: 100 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex('idx_bundles_dialect_version').on(t.dialectId, t.version)],

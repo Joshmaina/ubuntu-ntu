@@ -53,6 +53,41 @@ const SCHEMA = `
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  -- Installed content bundles. Immutable and content-addressed, so a given id
+  -- always means byte-identical content and re-downloading is never necessary.
+  CREATE TABLE IF NOT EXISTS installed_bundles (
+    id               TEXT PRIMARY KEY,
+    dialect_id       TEXT    NOT NULL,
+    version          INTEGER NOT NULL,
+    sha256           TEXT    NOT NULL,
+    size_bytes       INTEGER NOT NULL,
+    country_code     TEXT    NOT NULL,
+    community_region TEXT    NOT NULL,
+    installed_at     INTEGER NOT NULL
+  );
+
+  -- Lessons unpacked from a bundle, ready to serve offline.
+  CREATE TABLE IF NOT EXISTS local_lessons (
+    id          TEXT PRIMARY KEY,
+    bundle_id   TEXT    NOT NULL,
+    skill_id    TEXT    NOT NULL,
+    order_index INTEGER NOT NULL,
+    payload     TEXT    NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_local_lessons_skill
+    ON local_lessons(skill_id, order_index);
+
+  -- Vocabulary unpacked from a bundle. Separate from the cards table: this is
+  -- CONTENT (shared, replaceable), while cards are PROGRESS (personal and
+  -- irreplaceable). Reinstalling a bundle must never touch memory state.
+  CREATE TABLE IF NOT EXISTS local_vocabulary (
+    id         TEXT PRIMARY KEY,
+    bundle_id  TEXT NOT NULL,
+    target     TEXT NOT NULL,
+    payload    TEXT NOT NULL
+  );
 `;
 
 interface CardRow {
